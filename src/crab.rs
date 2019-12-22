@@ -27,13 +27,14 @@ impl Crab {
 
     pub fn update(&mut self, mut direction: Vector2<f32>, seconds: f32, map: &Map) {
         let rect = self.bounding_rect();
+        let mut steps: f32 = 0.0;
         if map.on_ground(Point2::new(self.pos.x + rect.w / 2.0, self.pos.y + rect.h)) {
             //            self.velocity.y = 0.0;
             while map.on_ground(Point2::new(
                 self.pos.x + rect.w / 2.0,
-                self.pos.y + rect.h - 1.0,
+                self.pos.y + rect.h - steps - 1.0,
             )) {
-                self.pos.y -= 1.0;
+                steps += 1.0;
             }
         } else {
             while !map.on_ground(Point2::new(self.pos.x + rect.w / 2.0, self.pos.y + rect.h)) {
@@ -41,7 +42,18 @@ impl Crab {
             }
             //            self.velocity.y = Self::GRAVITY;
             direction.y = 1.0;
-            println!("falling: {:?}", rect);
+        }
+        if steps < self.image.height() as f32 / 2.0 {
+            self.pos.y -= steps;
+        } else {
+            if direction.x == 1.0
+                && map.on_ground(Point2::new(self.pos.x + rect.w, self.pos.y + rect.h))
+            {
+                return;
+            }
+            if direction.x == -1.0 && map.on_ground(Point2::new(self.pos.x, self.pos.y + rect.h)) {
+                return;
+            }
         }
         self.pos.x = na::clamp(
             self.pos.x + self.velocity.x * direction.x * seconds,
