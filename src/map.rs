@@ -1,17 +1,16 @@
 use ggez::graphics;
-use ggez::graphics::DrawParam;
 use ggez::nalgebra::Point2;
 use ggez::{Context, GameResult};
 use std::fmt;
 
 pub struct Map {
-    image: graphics::Image,
     mask: Vec<Vec<u8>>,
+    width: u16,
+    height: u16,
 }
 
 impl Map {
-    pub fn new(ctx: &mut Context, path: String) -> GameResult<Self> {
-        let image = graphics::Image::new(ctx, path)?;
+    pub fn new(ctx: &mut Context, image: &graphics::Image) -> GameResult<Self> {
         let (width, height) = (image.width() as usize, image.height() as usize);
         let data = image.to_rgba8(ctx)?;
         let alphas = data.iter().enumerate().filter(|(idx, _)| idx % 4 == 3);
@@ -23,25 +22,23 @@ impl Map {
                 mask[y][x] = 1;
             }
         }
-        Ok(Map { image, mask })
+        Ok(Map {
+            mask,
+            width: width as u16,
+            height: height as u16,
+        })
     }
 
-    pub fn draw(&self, ctx: &mut Context) -> GameResult {
-        graphics::draw(
-            ctx,
-            &self.image,
-            DrawParam::default()
-                //            .src(graphics::Rect::new_i32(0, 2000, 1200, 700))
-                .dest(Point2::new(0.0, 0.0)),
-        )
+    pub fn get_width(&self) -> u16 {
+        self.width
+    }
+
+    pub fn get_height(&self) -> u16 {
+        self.height
     }
 
     pub fn get(&self, x: usize, y: usize) -> Option<&u8> {
         return self.mask.get(y).and(self.mask[y].get(x));
-    }
-
-    pub fn dimensions(&self) -> graphics::Rect {
-        self.image.dimensions()
     }
 
     pub fn on_ground(&self, pos: Point2<f32>) -> bool {
@@ -57,6 +54,6 @@ impl fmt::Debug for Map {
         for v in self.mask.iter() {
             write!(f, "{:?}\n", v)?;
         }
-        write!(f, "dimensions: {:?}", self.image.dimensions())
+        write!(f, "dimensions: {:?} x {:?}", self.width, self.height)
     }
 }
