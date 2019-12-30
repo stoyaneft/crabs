@@ -28,11 +28,15 @@ pub fn main() -> GameResult {
     let config = config::GameConfig {
         crab: config::CrabConfig {
             image: String::from("/crab.png"),
+            image_firing: String::from("/crab-firing.png"),
             width: 48,
             height: 32,
         },
         map: config::MapConfig {
             image: String::from("/large-hill.png"),
+        },
+        weapons: config::WeaponsConfig {
+            image: String::from("/weapons.png"),
         },
     };
     let game = &mut Game::new(ctx, config)?;

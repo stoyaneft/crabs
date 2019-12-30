@@ -1,11 +1,13 @@
 use crate::map::Map;
+use crate::weapon::Weapon;
 use ggez::graphics::{self, Rect};
 use ggez::nalgebra as na;
 use ggez::nalgebra::{Point2, Vector2};
 
 pub struct Crab {
-    rect: Rect,
-    velocity: na::Vector2<f32>,
+    pub rect: Rect,
+    pub velocity: na::Vector2<f32>,
+    pub weapon: Weapon,
 }
 
 impl Crab {
@@ -16,6 +18,7 @@ impl Crab {
         Crab {
             rect,
             velocity: Vector2::new(Self::SPEED, 0.0),
+            weapon: Weapon::None,
         }
     }
 
@@ -69,6 +72,11 @@ impl Crab {
         //        println!("new pos: {:?}", self.rect);
         //        println!("new vel: {:?}", self.velocity);
         //        println!("new dir: {:?}", direction);
+    }
+
+    pub fn set_weapon(&mut self, weapon: Weapon) {
+        println!("weapon set: {:?}", weapon);
+        self.weapon = weapon;
     }
 
     pub fn get_rect(&self) -> graphics::Rect {
