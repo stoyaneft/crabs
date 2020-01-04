@@ -26,12 +26,29 @@ pub fn main() -> GameResult {
         .build()?;
 
     let config = config::GameConfig {
-        crab: config::CrabConfig {
-            image: String::from("/crab.png"),
-            image_firing: String::from("/crab-firing.png"),
-            width: 48,
-            height: 32,
-        },
+        players_count: 2,
+        players: vec![
+            config::PlayerConfig {
+                name: String::from("Stoyan"),
+                crabs_count: 1,
+                crab: config::CrabConfig {
+                    image: String::from("/crab.png"),
+                    image_firing: String::from("/crab-firing.png"),
+                    width: 48,
+                    height: 32,
+                },
+            },
+            config::PlayerConfig {
+                name: String::from("PC"),
+                crabs_count: 1,
+                crab: config::CrabConfig {
+                    image: String::from("/crab2.png"),
+                    image_firing: String::from("/crab-firing2.png"),
+                    width: 48,
+                    height: 32,
+                },
+            },
+        ],
         map: config::MapConfig {
             image: String::from("/large-hill.png"),
         },

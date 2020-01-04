@@ -3,37 +3,51 @@ use crate::weapon::Weapon;
 use ggez::graphics::{self, DrawParam, Rect};
 use ggez::nalgebra::{Point2, Vector2};
 use ggez::{Context, GameResult};
+use std::collections::HashMap;
 
 pub struct GUI {
     cfg: Config,
     map: graphics::Image,
-    crab: graphics::Image,
-    crab_firing: graphics::Image,
+    players: HashMap<String, Player>,
     weapons: WeaponsMenu,
 }
 
 pub struct Config {
     pub images: ImagesConfig,
+    pub players: Vec<PlayerConfig>,
 }
 
 pub struct ImagesConfig {
-    pub crab: String,
-    pub crab_firing: String,
     pub map: String,
     pub weapons: String,
+}
+
+pub struct PlayerConfig {
+    pub name: String,
+    pub crab_image: String,
+    pub crab_firing_image: String,
 }
 
 impl GUI {
     pub fn new(ctx: &mut Context, cfg: Config) -> GameResult<Self> {
         let map = graphics::Image::new(ctx, &cfg.images.map)?;
-        let crab = graphics::Image::new(ctx, &cfg.images.crab)?;
-        let crab_firing = graphics::Image::new(ctx, &cfg.images.crab_firing)?;
         let weapons = graphics::Image::new(ctx, &cfg.images.weapons)?;
+        let mut players = HashMap::new();
+        for playerCfg in cfg.players.iter() {
+            let crab_image = graphics::Image::new(ctx, &playerCfg.crab_image)?;
+            let crab_firing_image = graphics::Image::new(ctx, &playerCfg.crab_firing_image)?;
+            players.insert(
+                playerCfg.name.clone(),
+                Player {
+                    crab_image,
+                    crab_firing_image,
+                },
+            );
+        }
         Ok(GUI {
             cfg,
             map,
-            crab,
-            crab_firing,
+            players,
             weapons: WeaponsMenu {
                 image: weapons,
                 rect: Rect::new(0.0, 0.0, 0.0, 0.0),
@@ -50,10 +64,11 @@ impl GUI {
         &self.map
     }
 
-    pub fn draw_crab(&self, ctx: &mut Context, crab: &Crab) -> GameResult {
+    pub fn draw_crab(&self, ctx: &mut Context, player_name: &str, crab: &Crab) -> GameResult {
+        let player = self.players.get(player_name).unwrap();
         let scale = Vector2::new(
-            crab.rect.w / self.crab.width() as f32,
-            crab.rect.h / self.crab.height() as f32,
+            crab.rect.w / player.crab_image.width() as f32,
+            crab.rect.h / player.crab_image.height() as f32,
         );
         let rect = Rect::new(
             crab.rect.x,
@@ -64,13 +79,15 @@ impl GUI {
         match crab.weapon {
             Weapon::None => graphics::draw(
                 ctx,
-                &self.crab,
+                &player.crab_image,
                 DrawParam::default().dest(rect.point()).scale(scale),
             ),
             _ => {
                 graphics::draw(
                     ctx,
-                    &self.crab_firing,
+                    &player.crab_firing_image,
+                    // TODO: same rect used for crab and firing_crab. Could be a problem for images
+                    // with different dimentions.
                     DrawParam::default().dest(rect.point()).scale(scale),
                 )?;
                 self.draw_weapon(ctx, crab.weapon, rect)
@@ -160,6 +177,11 @@ impl GUI {
         let idx = (x - self.weapons.rect.x) as usize / self.weapons.rect.w as usize;
         Some(WEAPONS_MENU_ITEMS[idx].kind)
     }
+}
+
+struct Player {
+    crab_image: graphics::Image,
+    crab_firing_image: graphics::Image,
 }
 
 struct WeaponInfo {
