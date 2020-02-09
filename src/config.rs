@@ -3,6 +3,7 @@ pub struct GameConfig {
     pub map: MapConfig,
     pub weapons: WeaponsConfig,
     pub players_count: u8,
+    pub shots: ShotsConfig,
 }
 
 pub struct CrabConfig {
@@ -24,4 +25,14 @@ pub struct MapConfig {
 
 pub struct WeaponsConfig {
     pub image: String,
+}
+
+pub struct ShotsConfig {
+    pub pistol: ShotConfig,
+}
+
+pub struct ShotConfig {
+    pub image: String,
+    pub width: u16,
+    pub height: u16,
 }

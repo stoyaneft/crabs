@@ -1,4 +1,5 @@
 use crate::crab::Crab;
+use crate::shot::{Shot, ShotKind};
 use crate::weapon::Weapon;
 use ggez::graphics::{self, DrawParam, Rect};
 use ggez::nalgebra::{Point2, Vector2};
@@ -10,6 +11,7 @@ pub struct GUI {
     map: graphics::Image,
     players: HashMap<String, Player>,
     weapons: WeaponsMenu,
+    shots: ShotImages,
 }
 
 pub struct Config {
@@ -20,6 +22,11 @@ pub struct Config {
 pub struct ImagesConfig {
     pub map: String,
     pub weapons: String,
+    pub shots: ShotsConfig,
+}
+
+pub struct ShotsConfig {
+    pub pistol: String,
 }
 
 pub struct PlayerConfig {
@@ -33,17 +40,18 @@ impl GUI {
         let map = graphics::Image::new(ctx, &cfg.images.map)?;
         let weapons = graphics::Image::new(ctx, &cfg.images.weapons)?;
         let mut players = HashMap::new();
-        for playerCfg in cfg.players.iter() {
-            let crab_image = graphics::Image::new(ctx, &playerCfg.crab_image)?;
-            let crab_firing_image = graphics::Image::new(ctx, &playerCfg.crab_firing_image)?;
+        for player_cfg in cfg.players.iter() {
+            let crab_image = graphics::Image::new(ctx, &player_cfg.crab_image)?;
+            let crab_firing_image = graphics::Image::new(ctx, &player_cfg.crab_firing_image)?;
             players.insert(
-                playerCfg.name.clone(),
+                player_cfg.name.clone(),
                 Player {
                     crab_image,
                     crab_firing_image,
                 },
             );
         }
+        let pistol = graphics::Image::new(ctx, &cfg.images.shots.pistol)?;
         Ok(GUI {
             cfg,
             map,
@@ -52,6 +60,7 @@ impl GUI {
                 image: weapons,
                 rect: Rect::new(0.0, 0.0, 0.0, 0.0),
             },
+            shots: ShotImages { pistol },
         })
     }
 
@@ -76,7 +85,7 @@ impl GUI {
             self.weapons.rect.w,
             self.weapons.rect.h,
         );
-        match crab.weapon {
+        match crab.weapon.kind() {
             Weapon::None => graphics::draw(
                 ctx,
                 &player.crab_image,
@@ -90,7 +99,7 @@ impl GUI {
                     // with different dimentions.
                     DrawParam::default().dest(rect.point()).scale(scale),
                 )?;
-                self.draw_weapon(ctx, crab.weapon, rect)
+                self.draw_weapon(ctx, crab.weapon.kind(), rect)
             }
         }
     }
@@ -102,6 +111,25 @@ impl GUI {
             .find(|(_, w)| w.kind == weapon)
             .unwrap();
         self.draw_weapon_at_idx(ctx, idx as u8, rect, Vector2::new(0.5, 0.5))
+    }
+
+    pub fn draw_shot(&self, ctx: &mut Context, shot: &Box<dyn Shot>) -> GameResult {
+        let image = match shot.kind() {
+            ShotKind::Pistol => &self.shots.pistol,
+            //            _ => not_implemented!(),
+        };
+        let rect = shot.get_rect();
+        let scale = Vector2::new(
+            rect.w / self.shots.pistol.width() as f32,
+            rect.h / self.shots.pistol.height() as f32,
+        );
+        graphics::draw(
+            ctx,
+            image,
+            DrawParam::default()
+                .dest(shot.get_rect().point())
+                .scale(scale),
+        )
     }
 
     pub fn draw_rect(&self, ctx: &mut Context, rect: Rect) -> GameResult {
@@ -194,7 +222,11 @@ struct WeaponsMenu {
     rect: Rect,
 }
 
-static WEAPONS_MENU_ITEMS: &'static [WeaponInfo; 2] = &[
+struct ShotImages {
+    pistol: graphics::Image,
+}
+
+static WEAPONS_MENU_ITEMS: &'static [WeaponInfo; 4] = &[
     WeaponInfo {
         kind: Weapon::Granade,
         image_pos: (0, 0),
@@ -202,6 +234,14 @@ static WEAPONS_MENU_ITEMS: &'static [WeaponInfo; 2] = &[
     WeaponInfo {
         kind: Weapon::Bazooka,
         image_pos: (0, 2),
+    },
+    WeaponInfo {
+        kind: Weapon::Skip,
+        image_pos: (1, 3),
+    },
+    WeaponInfo {
+        kind: Weapon::Pistol,
+        image_pos: (0, 9),
     },
 ];
 const WEAPONS_IMAGE_WIDTH: f32 = 32.0;

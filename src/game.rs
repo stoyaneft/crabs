@@ -2,8 +2,10 @@ use crate::config::GameConfig;
 use crate::gui::{self, GUI};
 use crate::map::Map;
 use crate::player::Player;
+use crate::shot::Shot;
+use ggez::graphics::Rect;
 use ggez::input::mouse::MouseButton;
-use ggez::nalgebra::{Point2, Vector2};
+use ggez::nalgebra::Vector2;
 use ggez::{event, timer};
 use ggez::{graphics, Context, GameResult};
 
@@ -19,6 +21,8 @@ pub struct Game {
     players: Vec<Player>,
     input: InputState,
     active_player_idx: usize,
+    shots: Vec<Box<dyn Shot>>,
+    shooting_in_progress: bool,
 }
 
 impl Game {
@@ -41,11 +45,14 @@ impl Game {
                 images: gui::ImagesConfig {
                     map: cfg.map.image,
                     weapons: cfg.weapons.image,
+                    shots: gui::ShotsConfig {
+                        pistol: cfg.shots.pistol.image,
+                    },
                 },
                 players: players_cfg,
             },
         )?;
-        gui.init_weapons_menu(graphics::Rect::new(400.0, 250.0, 32.0, 32.0));
+        gui.init_weapons_menu(graphics::Rect::new(350.0, 250.0, 32.0, 32.0));
         let map = Map::new(ctx, gui.get_map())?;
         //        println!("map: {:?}", map);
 
@@ -62,7 +69,30 @@ impl Game {
             players,
             input: InputState::default(),
             active_player_idx: 0,
+            shots: vec![],
+            shooting_in_progress: false,
         })
+    }
+}
+
+impl Game {
+    fn spawn_shots(&mut self, shots: Vec<Box<dyn Shot>>) {
+        self.shots = shots;
+        self.shooting_in_progress = true;
+    }
+
+    fn switch_turn(&mut self) {
+        self.active_player_idx = (self.active_player_idx + 1) % self.players.len()
+    }
+
+    //    fn handle_collision(&mut self) {
+    //        for shot in &mut self.shots {
+    //            shot.get_rect().
+    //        }
+    //    }
+
+    fn is_outside(rect: Rect) -> bool {
+        rect.top() < 0.0 || rect.left() < 0.0 || rect.bottom() > 300.0 || rect.right() > 500.0
     }
 }
 
@@ -75,6 +105,17 @@ impl event::EventHandler for Game {
             for crab in self.players[self.active_player_idx].crabs.iter_mut() {
                 crab.update(Vector2::new(self.input.movement, 0.0), seconds, &self.map);
             }
+
+            for shot in self.shots.iter_mut() {
+                shot.update(seconds);
+            }
+
+            if self.shooting_in_progress && self.shots.len() == 0 {
+                self.switch_turn();
+                self.shooting_in_progress = false;
+            }
+
+            self.shots.retain(|shot| !Game::is_outside(shot.get_rect()))
         }
 
         Ok(())
@@ -91,6 +132,10 @@ impl event::EventHandler for Game {
                 self.gui.draw_crab(ctx, &player.name, crab)?;
                 self.gui.draw_rect(ctx, rect)?;
             }
+        }
+
+        for shot in self.shots.iter() {
+            self.gui.draw_shot(ctx, shot);
         }
 
         if self.input.weapons_menu_open {
@@ -124,6 +169,12 @@ impl event::EventHandler for Game {
     ) {
         match keycode {
             event::KeyCode::Left | event::KeyCode::Right => self.input.movement = 0.0,
+            event::KeyCode::Space => {
+                match self.players[self.active_player_idx].active_crab().fire() {
+                    None => return,
+                    Some(shots) => self.spawn_shots(shots),
+                }
+            }
             _ => (),
         }
     }

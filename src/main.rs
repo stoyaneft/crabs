@@ -55,6 +55,13 @@ pub fn main() -> GameResult {
         weapons: config::WeaponsConfig {
             image: String::from("/weapons.png"),
         },
+        shots: config::ShotsConfig {
+            pistol: config::ShotConfig {
+                image: String::from("/bullet.png"),
+                width: 15,
+                height: 12,
+            },
+        },
     };
     let game = &mut Game::new(ctx, config)?;
     event::run(ctx, event_loop, game)

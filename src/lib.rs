@@ -6,4 +6,5 @@ pub mod game;
 pub mod gui;
 pub mod map;
 pub mod player;
+pub mod shot;
 pub mod weapon;
