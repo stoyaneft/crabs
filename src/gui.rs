@@ -1,7 +1,7 @@
 use crate::crab::Crab;
 use crate::shot::{Shot, ShotKind};
 use crate::weapon::WeaponType;
-use ggez::graphics::{self, DrawParam, Rect};
+use ggez::graphics::{self, DrawParam, Rect, Text};
 use ggez::nalgebra::{Point2, Vector2};
 use ggez::{Context, GameResult};
 use std::collections::HashMap;
@@ -102,7 +102,21 @@ impl GUI {
                 )?;
                 self.draw_weapon(ctx, crab.weapon.kind(), rect)
             }
-        }
+        }?;
+        self.draw_health(ctx, crab)
+    }
+
+    fn draw_health(&self, ctx: &mut Context, crab: &Crab) -> GameResult {
+        let health = Text::new(format!("{}", crab.get_health()));
+        let rect = crab.get_rect();
+        graphics::draw(
+            ctx,
+            &health,
+            DrawParam::default().dest(Point2::new(
+                rect.x + rect.w / 4.0,
+                crab.get_rect().top() - 20.0,
+            )),
+        )
     }
 
     fn draw_weapon(&self, ctx: &mut Context, weapon: WeaponType, rect: Rect) -> GameResult {
