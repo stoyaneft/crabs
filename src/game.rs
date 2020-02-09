@@ -2,7 +2,7 @@ use crate::config::GameConfig;
 use crate::gui::{self, GUI};
 use crate::map::Map;
 use crate::player::Player;
-use crate::shot::Shot;
+use crate::shot::{Shot, ShotKind};
 use ggez::graphics::Rect;
 use ggez::input::mouse::MouseButton;
 use ggez::nalgebra::Vector2;
@@ -21,7 +21,7 @@ pub struct Game {
     players: Vec<Player>,
     input: InputState,
     active_player_idx: usize,
-    shots: Vec<Box<dyn Shot>>,
+    shots: Vec<GameShot>,
     shooting_in_progress: bool,
 }
 
@@ -77,7 +77,13 @@ impl Game {
 
 impl Game {
     fn spawn_shots(&mut self, shots: Vec<Box<dyn Shot>>) {
-        self.shots = shots;
+        self.shots = shots
+            .iter()
+            .map(|shot| GameShot {
+                is_alive: true,
+                shot: shot.clone(),
+            })
+            .collect();
         self.shooting_in_progress = true;
     }
 
@@ -85,10 +91,30 @@ impl Game {
         self.active_player_idx = (self.active_player_idx + 1) % self.players.len()
     }
 
-    //    fn handle_collision(&mut self) {
-    //        for shot in &mut self.shots {
-    //            shot.get_rect().
-    //        }
+    fn handle_collisions(&mut self, name: String) {
+        for shot in &mut self.shots {
+            for player in &mut self.players {
+                for crab in &mut player.crabs {
+                    if crab.name == name {
+                        continue;
+                    }
+                    if shot.is_alive && shot.get_rect().overlaps(&crab.get_rect()) {
+                        crab.reduce_health(shot.damage());
+                        println!("crab was hit by shot");
+                        shot.is_alive = false;
+                    }
+                }
+            }
+        }
+    }
+
+    //    fn inactive_players(&mut self) -> Vec<&mut Player> {
+    //        self.players
+    //            .iter_mut()
+    //            .enumerate()
+    //            .filter(|(i, _)| *i != self.active_player_idx)
+    //            .map(|(_, player)| player)
+    //            .collect()
     //    }
 
     fn is_outside(rect: Rect) -> bool {
@@ -102,9 +128,9 @@ impl event::EventHandler for Game {
         let seconds = 1.0 / (FPS as f32);
 
         while timer::check_update_time(ctx, FPS) {
-            for crab in self.players[self.active_player_idx].crabs.iter_mut() {
-                crab.update(Vector2::new(self.input.movement, 0.0), seconds, &self.map);
-            }
+            let active_crab = self.players[self.active_player_idx].active_crab();
+            let active_crab_name = active_crab.name.clone();
+            active_crab.update(Vector2::new(self.input.movement, 0.0), seconds, &self.map);
 
             for shot in self.shots.iter_mut() {
                 shot.update(seconds);
@@ -115,7 +141,9 @@ impl event::EventHandler for Game {
                 self.shooting_in_progress = false;
             }
 
-            self.shots.retain(|shot| !Game::is_outside(shot.get_rect()))
+            self.handle_collisions(active_crab_name);
+            self.shots
+                .retain(|shot| !Game::is_outside(shot.get_rect()) && shot.is_alive)
         }
 
         Ok(())
@@ -135,7 +163,7 @@ impl event::EventHandler for Game {
         }
 
         for shot in self.shots.iter() {
-            self.gui.draw_shot(ctx, shot);
+            self.gui.draw_shot(ctx, &shot.shot);
         }
 
         if self.input.weapons_menu_open {
@@ -192,5 +220,29 @@ impl event::EventHandler for Game {
             },
             _ => (),
         }
+    }
+}
+
+#[derive(Clone)]
+struct GameShot {
+    shot: Box<dyn Shot>,
+    is_alive: bool,
+}
+
+impl Shot for GameShot {
+    fn kind(&self) -> ShotKind {
+        self.shot.kind()
+    }
+
+    fn update(&mut self, seconds: f32) {
+        self.shot.update(seconds)
+    }
+
+    fn damage(&self) -> f32 {
+        self.shot.damage()
+    }
+
+    fn get_rect(&self) -> Rect {
+        self.shot.get_rect()
     }
 }

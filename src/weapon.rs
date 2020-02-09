@@ -3,66 +3,66 @@ use ggez::graphics::Rect;
 use ggez::nalgebra::{Point2, Vector2};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Weapon {
+pub enum WeaponType {
     None,
     Bazooka,
-    Granade,
+    Grenade,
     Pistol,
     Skip,
 }
 
-pub trait Fireable {
+pub trait Weapon {
     fn fire(&self, _: Point2<f32>) -> Option<Vec<Box<dyn Shot>>>;
-    fn kind(&self) -> Weapon;
+    fn kind(&self) -> WeaponType;
 }
 
-pub fn New(weapon: Weapon) -> Box<dyn Fireable> {
+pub fn new_weapon(weapon: WeaponType) -> Box<dyn Weapon> {
     match weapon {
-        Weapon::Skip => Box::new(Skip { kind: weapon }),
-        Weapon::Pistol => Box::new(Pistol {
+        WeaponType::Skip => Box::new(Skip { kind: weapon }),
+        WeaponType::Pistol => Box::new(Pistol {
             kind: weapon,
-            direction: Vector2::new(1.0, 0.0),
+            direction: Vector2::new(-1.0, 0.0),
         }),
         _ => Box::new(NoWeapon { kind: weapon }),
-        // Weapon::Bazooka =>  {type: weapon }
-        // Weapon::None => NoWeapon {type: weapon }
+        // Weapon::Bazooka =>  {kind: weapon }
+        // Weapon::None => NoWeapon {kind: weapon }
     }
 }
 
 pub struct NoWeapon {
-    kind: Weapon,
+    kind: WeaponType,
 }
-impl Fireable for NoWeapon {
+impl Weapon for NoWeapon {
     fn fire(&self, _: Point2<f32>) -> Option<Vec<Box<dyn Shot>>> {
         println!("none firing");
         None
     }
 
-    fn kind(&self) -> Weapon {
+    fn kind(&self) -> WeaponType {
         self.kind
     }
 }
 
 pub struct Skip {
-    kind: Weapon,
+    kind: WeaponType,
 }
-impl Fireable for Skip {
+impl Weapon for Skip {
     fn fire(&self, _: Point2<f32>) -> Option<Vec<Box<dyn Shot>>> {
         println!("skip firing");
         Some(vec![])
     }
 
-    fn kind(&self) -> Weapon {
+    fn kind(&self) -> WeaponType {
         self.kind
     }
 }
 
 pub struct Pistol {
-    kind: Weapon,
+    kind: WeaponType,
     direction: Vector2<f32>,
 }
 
-impl Fireable for Pistol {
+impl Weapon for Pistol {
     fn fire(&self, pos: Point2<f32>) -> Option<Vec<Box<dyn Shot>>> {
         println!("pistol firing");
         Some(vec![Box::new(new_pistol_shot(
@@ -71,7 +71,7 @@ impl Fireable for Pistol {
         ))])
     }
 
-    fn kind(&self) -> Weapon {
+    fn kind(&self) -> WeaponType {
         self.kind
     }
 }

@@ -1,25 +1,29 @@
 use crate::map::Map;
 use crate::shot::Shot;
-use crate::weapon::{Fireable, New, Weapon};
+use crate::weapon::{new_weapon, Weapon, WeaponType};
 use ggez::graphics::Rect;
 use ggez::nalgebra as na;
 use ggez::nalgebra::{Point2, Vector2};
 
 pub struct Crab {
-    pub rect: Rect,
     pub velocity: na::Vector2<f32>,
-    pub weapon: Box<dyn Fireable>,
+    pub weapon: Box<dyn Weapon>,
+    pub name: String,
+    rect: Rect,
+    health: f32,
 }
 
 impl Crab {
     pub const SPEED: f32 = 250.0;
     pub const GRAVITY: f32 = 50.0;
 
-    pub fn new(rect: Rect) -> Self {
+    pub fn new(name: &str, rect: Rect) -> Self {
         Crab {
             rect,
+            name: String::from(name),
             velocity: Vector2::new(Self::SPEED, 0.0),
-            weapon: New(Weapon::None),
+            weapon: new_weapon(WeaponType::None),
+            health: 100.0,
         }
     }
 
@@ -75,9 +79,9 @@ impl Crab {
         //        println!("new dir: {:?}", direction);
     }
 
-    pub fn set_weapon(&mut self, weapon: Weapon) {
+    pub fn set_weapon(&mut self, weapon: WeaponType) {
         println!("weapon set: {:?}", weapon);
-        self.weapon = New(weapon)
+        self.weapon = new_weapon(weapon)
     }
 
     pub fn fire(&mut self) -> Option<Vec<Box<dyn Shot>>> {
@@ -86,6 +90,14 @@ impl Crab {
 
     pub fn get_rect(&self) -> Rect {
         self.rect
+    }
+
+    pub fn get_health(&self) -> f32 {
+        self.health
+    }
+
+    pub fn reduce_health(&mut self, damage: f32) {
+        self.health -= damage;
     }
 }
 

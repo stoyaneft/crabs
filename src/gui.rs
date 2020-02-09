@@ -1,6 +1,6 @@
 use crate::crab::Crab;
 use crate::shot::{Shot, ShotKind};
-use crate::weapon::Weapon;
+use crate::weapon::WeaponType;
 use ggez::graphics::{self, DrawParam, Rect};
 use ggez::nalgebra::{Point2, Vector2};
 use ggez::{Context, GameResult};
@@ -75,18 +75,19 @@ impl GUI {
 
     pub fn draw_crab(&self, ctx: &mut Context, player_name: &str, crab: &Crab) -> GameResult {
         let player = self.players.get(player_name).unwrap();
+        let crab_rect = crab.get_rect();
         let scale = Vector2::new(
-            crab.rect.w / player.crab_image.width() as f32,
-            crab.rect.h / player.crab_image.height() as f32,
+            crab_rect.w / player.crab_image.width() as f32,
+            crab_rect.h / player.crab_image.height() as f32,
         );
         let rect = Rect::new(
-            crab.rect.x,
-            crab.rect.y,
+            crab_rect.x,
+            crab_rect.y,
             self.weapons.rect.w,
             self.weapons.rect.h,
         );
         match crab.weapon.kind() {
-            Weapon::None => graphics::draw(
+            WeaponType::None => graphics::draw(
                 ctx,
                 &player.crab_image,
                 DrawParam::default().dest(rect.point()).scale(scale),
@@ -104,7 +105,7 @@ impl GUI {
         }
     }
 
-    fn draw_weapon(&self, ctx: &mut Context, weapon: Weapon, rect: Rect) -> GameResult {
+    fn draw_weapon(&self, ctx: &mut Context, weapon: WeaponType, rect: Rect) -> GameResult {
         let (idx, _) = WEAPONS_MENU_ITEMS
             .iter()
             .enumerate()
@@ -189,7 +190,7 @@ impl GUI {
         )
     }
 
-    pub fn is_weapon_activated(&self, x: f32, y: f32) -> Option<Weapon> {
+    pub fn is_weapon_activated(&self, x: f32, y: f32) -> Option<WeaponType> {
         // Change when rows and columns are introduced.
         if y < self.weapons.rect.y || y > self.weapons.rect.y + self.weapons.rect.h {
             return None;
@@ -213,7 +214,7 @@ struct Player {
 }
 
 struct WeaponInfo {
-    kind: Weapon,
+    kind: WeaponType,
     image_pos: (u8, u8),
 }
 
@@ -228,19 +229,19 @@ struct ShotImages {
 
 static WEAPONS_MENU_ITEMS: &'static [WeaponInfo; 4] = &[
     WeaponInfo {
-        kind: Weapon::Granade,
+        kind: WeaponType::Grenade,
         image_pos: (0, 0),
     },
     WeaponInfo {
-        kind: Weapon::Bazooka,
+        kind: WeaponType::Bazooka,
         image_pos: (0, 2),
     },
     WeaponInfo {
-        kind: Weapon::Skip,
+        kind: WeaponType::Skip,
         image_pos: (1, 3),
     },
     WeaponInfo {
-        kind: Weapon::Pistol,
+        kind: WeaponType::Pistol,
         image_pos: (0, 9),
     },
 ];
