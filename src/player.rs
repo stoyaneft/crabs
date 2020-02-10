@@ -1,7 +1,13 @@
 use crate::config::PlayerConfig;
 use crate::crab::Crab;
+use crate::map::Map;
+use crate::shot::Shot;
+use crate::weapon::WeaponType;
 use ggez::graphics;
+use ggez::graphics::Rect;
+use ggez::nalgebra::Vector2;
 use rand::{self, Rng};
+use std::collections::HashSet;
 
 pub struct Player {
     pub name: String,
@@ -34,20 +40,41 @@ impl Player {
         }
     }
 
-    pub fn active_crab(&mut self) -> &mut Crab {
-        &mut self.crabs[self.active_crab_idx]
+    pub fn update_crab(&mut self, direction: Vector2<f32>, seconds: f32, map: &Map) {
+        if self.crabs.len() > 0 {
+            self.crabs[self.active_crab_idx].update(direction, seconds, map)
+        }
     }
 
-    pub fn active_crab_name(&self) -> &str {
-        &self.crabs[self.active_crab_idx].name
+    pub fn set_weapon(&mut self, weapon: WeaponType) {
+        self.crabs[self.active_crab_idx].set_weapon(weapon)
     }
 
-    //    pub fn inactive_crabs(&mut self) -> Vec<&mut Crab> {
-    //        self.crabs
-    //            .iter_mut()
-    //            .enumerate()
-    //            .filter(|(i, _)| *i != self.active_crab_idx)
-    //            .map(|(_, crab)| crab)
-    //            .collect()
-    //    }
+    pub fn fire(&mut self) -> Option<Vec<Box<dyn Shot>>> {
+        self.crabs[self.active_crab_idx].fire()
+    }
+
+    pub fn kill_crab(&mut self, name: String) {
+        self.crabs.retain(|crab| crab.name != name);
+    }
+
+    pub fn handle_collisions(&mut self, shot: Box<dyn Shot>, skip_active: bool) -> bool {
+        let mut hit = false;
+        let mut killed = HashSet::new();
+        let active_crab = self.crabs[self.active_crab_idx].name.clone();
+        self.crabs.iter_mut().for_each(|crab| {
+            if skip_active && crab.name == active_crab {
+                return;
+            }
+            if crab.get_rect().overlaps(&shot.get_rect()) {
+                crab.reduce_health(shot.damage());
+                hit = true;
+                if crab.get_health() <= 0.0 {
+                    killed.insert(crab.name.clone());
+                }
+            }
+        });
+        self.crabs.retain(|crab| !killed.contains(&crab.name));
+        hit
+    }
 }

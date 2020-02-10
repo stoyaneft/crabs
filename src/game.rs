@@ -91,31 +91,18 @@ impl Game {
         self.active_player_idx = (self.active_player_idx + 1) % self.players.len()
     }
 
-    fn handle_collisions(&mut self, name: String) {
+    fn handle_collisions(&mut self) {
         for shot in &mut self.shots {
-            for player in &mut self.players {
-                for crab in &mut player.crabs {
-                    if crab.name == name {
-                        continue;
-                    }
-                    if shot.is_alive && shot.get_rect().overlaps(&crab.get_rect()) {
-                        crab.reduce_health(shot.damage());
-                        println!("crab was hit by shot");
-                        shot.is_alive = false;
-                    }
+            //            self.players[self.active_player_idx].handle_collisions(Box::new(shot.clone()), true);
+            for (i, player) in self.players.iter_mut().enumerate() {
+                let hit =
+                    player.handle_collisions(Box::new(shot.clone()), i == self.active_player_idx);
+                if hit {
+                    shot.is_alive = false;
                 }
             }
         }
     }
-
-    //    fn inactive_players(&mut self) -> Vec<&mut Player> {
-    //        self.players
-    //            .iter_mut()
-    //            .enumerate()
-    //            .filter(|(i, _)| *i != self.active_player_idx)
-    //            .map(|(_, player)| player)
-    //            .collect()
-    //    }
 
     fn is_outside(rect: Rect) -> bool {
         rect.top() < 0.0 || rect.left() < 0.0 || rect.bottom() > 300.0 || rect.right() > 500.0
@@ -128,9 +115,11 @@ impl event::EventHandler for Game {
         let seconds = 1.0 / (FPS as f32);
 
         while timer::check_update_time(ctx, FPS) {
-            let active_crab = self.players[self.active_player_idx].active_crab();
-            let active_crab_name = active_crab.name.clone();
-            active_crab.update(Vector2::new(self.input.movement, 0.0), seconds, &self.map);
+            self.players[self.active_player_idx].update_crab(
+                Vector2::new(self.input.movement, 0.0),
+                seconds,
+                &self.map,
+            );
 
             for shot in self.shots.iter_mut() {
                 shot.update(seconds);
@@ -141,7 +130,7 @@ impl event::EventHandler for Game {
                 self.shooting_in_progress = false;
             }
 
-            self.handle_collisions(active_crab_name);
+            self.handle_collisions();
             self.shots
                 .retain(|shot| !Game::is_outside(shot.get_rect()) && shot.is_alive)
         }
@@ -197,12 +186,10 @@ impl event::EventHandler for Game {
     ) {
         match keycode {
             event::KeyCode::Left | event::KeyCode::Right => self.input.movement = 0.0,
-            event::KeyCode::Space => {
-                match self.players[self.active_player_idx].active_crab().fire() {
-                    None => return,
-                    Some(shots) => self.spawn_shots(shots),
-                }
-            }
+            event::KeyCode::Space => match self.players[self.active_player_idx].fire() {
+                None => return,
+                Some(shots) => self.spawn_shots(shots),
+            },
             _ => (),
         }
     }
@@ -214,9 +201,7 @@ impl event::EventHandler for Game {
             }
             MouseButton::Left => match self.gui.is_weapon_activated(x, y) {
                 None => (),
-                Some(weapon) => self.players[self.active_player_idx]
-                    .active_crab()
-                    .set_weapon(weapon),
+                Some(weapon) => self.players[self.active_player_idx].set_weapon(weapon),
             },
             _ => (),
         }
