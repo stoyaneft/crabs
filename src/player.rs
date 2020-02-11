@@ -77,4 +77,8 @@ impl Player {
         self.crabs.retain(|crab| !killed.contains(&crab.name));
         hit
     }
+
+    pub fn total_health(&self) -> f32 {
+        self.crabs.iter().map(|crab| crab.get_health()).sum()
+    }
 }

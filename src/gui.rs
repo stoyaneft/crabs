@@ -1,4 +1,5 @@
 use crate::crab::Crab;
+use crate::game::Game;
 use crate::shot::{Shot, ShotKind};
 use crate::weapon::WeaponType;
 use ggez::graphics::{self, DrawParam, Rect, Text};
@@ -155,6 +156,15 @@ impl GUI {
             graphics::WHITE,
         )?;
         graphics::draw(ctx, &rect, DrawParam::default())
+    }
+
+    pub fn draw_winner(&self, ctx: &mut Context, winner: &str) -> GameResult {
+        let winner_banner = Text::new(format!("{} wins", winner));
+        graphics::draw(
+            ctx,
+            &winner_banner,
+            DrawParam::default().dest(Point2::new(self.map.width() as f32 / 2.0 - 20.0, 30.0)),
+        )
     }
 
     pub fn init_weapons_menu(&mut self, rect: Rect) {

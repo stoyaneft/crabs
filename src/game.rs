@@ -23,6 +23,7 @@ pub struct Game {
     active_player_idx: usize,
     shots: Vec<GameShot>,
     shooting_in_progress: bool,
+    winner: String,
 }
 
 impl Game {
@@ -71,6 +72,7 @@ impl Game {
             active_player_idx: 0,
             shots: vec![],
             shooting_in_progress: false,
+            winner: String::new(),
         })
     }
 }
@@ -132,7 +134,20 @@ impl event::EventHandler for Game {
 
             self.handle_collisions();
             self.shots
-                .retain(|shot| !Game::is_outside(shot.get_rect()) && shot.is_alive)
+                .retain(|shot| !Game::is_outside(shot.get_rect()) && shot.is_alive);
+
+            if self
+                .players
+                .iter()
+                .any(|player| player.total_health() <= 0.0)
+            {
+                let player = self
+                    .players
+                    .iter()
+                    .find(|p| p.total_health() > 0.0)
+                    .unwrap();
+                self.winner = player.name.clone();
+            }
         }
 
         Ok(())
@@ -157,6 +172,10 @@ impl event::EventHandler for Game {
 
         if self.input.weapons_menu_open {
             self.gui.draw_weapons_menu(ctx)?;
+        }
+
+        if self.winner.len() > 0 {
+            self.gui.draw_winner(ctx, &self.winner);
         }
 
         graphics::present(ctx)?;
