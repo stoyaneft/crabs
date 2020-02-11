@@ -1,4 +1,4 @@
-use crate::config::PlayerConfig;
+use crate::config::{PlayerConfig, Screen};
 use crate::crab::Crab;
 use crate::map::Map;
 use crate::shot::Shot;
@@ -16,7 +16,7 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(cfg: &PlayerConfig) -> Player {
+    pub fn new(cfg: &PlayerConfig, screen: &Screen) -> Player {
         let mut crabs = vec![];
         let mut rng = rand::thread_rng();
 
@@ -24,7 +24,7 @@ impl Player {
             let crab = Crab::new(
                 &format!("{}:{}", cfg.name, i),
                 graphics::Rect::new(
-                    rng.gen::<f32>() * 400.0,
+                    rng.gen::<f32>() * screen.width - 1.0,
                     100.0,
                     cfg.crab.width as f32,
                     cfg.crab.height as f32,
@@ -34,7 +34,7 @@ impl Player {
         }
 
         Player {
-            name: cfg.name.clone(),
+            name: String::from(cfg.name),
             crabs,
             active_crab_idx: 0,
         }

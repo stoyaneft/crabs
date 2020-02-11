@@ -16,6 +16,7 @@ struct InputState {
 }
 
 pub struct Game {
+    cfg: &'static GameConfig,
     gui: GUI,
     map: Map,
     players: Vec<Player>,
@@ -27,17 +28,17 @@ pub struct Game {
 }
 
 impl Game {
-    pub fn new(ctx: &mut Context, cfg: GameConfig) -> GameResult<Game> {
+    pub fn new(ctx: &mut Context, cfg: &'static GameConfig) -> GameResult<Game> {
         let mut players = vec![];
         let mut players_cfg = vec![];
         for i in 0..cfg.players_count {
             let i = i as usize;
-            let player = Player::new(&cfg.players[i]);
+            let player = Player::new(&cfg.players[i], &cfg.screen);
             players.push(player);
             players_cfg.push(gui::PlayerConfig {
-                name: cfg.players[i].name.clone(),
-                crab_image: cfg.players[i].crab.image.clone(),
-                crab_firing_image: cfg.players[i].crab.image_firing.clone(),
+                name: cfg.players[i].name,
+                crab_image: cfg.players[i].crab.image,
+                crab_firing_image: cfg.players[i].crab.image_firing,
             });
         }
         let mut gui = GUI::new(
@@ -65,6 +66,7 @@ impl Game {
         }
 
         Ok(Self {
+            cfg,
             gui,
             map,
             players,
@@ -106,13 +108,27 @@ impl Game {
         }
     }
 
-    fn is_outside(rect: Rect) -> bool {
-        rect.top() < 0.0 || rect.left() < 0.0 || rect.bottom() > 300.0 || rect.right() > 500.0
+    fn is_outside(rect: Rect, width: f32, height: f32) -> bool {
+        rect.top() < 0.0 || rect.left() < 0.0 || rect.bottom() > width || rect.right() > height
     }
 }
 
 impl event::EventHandler for Game {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
+        if self
+            .players
+            .iter()
+            .any(|player| player.total_health() <= 0.0)
+        {
+            let player = self
+                .players
+                .iter()
+                .find(|p| p.total_health() > 0.0)
+                .unwrap();
+            self.winner = player.name.clone();
+            return Ok(());
+        }
+
         const FPS: u32 = 30;
         let seconds = 1.0 / (FPS as f32);
 
@@ -133,21 +149,11 @@ impl event::EventHandler for Game {
             }
 
             self.handle_collisions();
-            self.shots
-                .retain(|shot| !Game::is_outside(shot.get_rect()) && shot.is_alive);
 
-            if self
-                .players
-                .iter()
-                .any(|player| player.total_health() <= 0.0)
-            {
-                let player = self
-                    .players
-                    .iter()
-                    .find(|p| p.total_health() > 0.0)
-                    .unwrap();
-                self.winner = player.name.clone();
-            }
+            let width = self.cfg.screen.width;
+            let height = self.cfg.screen.height;
+            self.shots
+                .retain(|shot| !Self::is_outside(shot.get_rect(), width, height) && shot.is_alive);
         }
 
         Ok(())
@@ -155,8 +161,10 @@ impl event::EventHandler for Game {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, [0.0, 0.0, 0.0, 0.0].into());
-        self.gui
-            .draw_map(ctx, graphics::Rect::new(0.0, 0.0, 500.0, 300.0))?;
+        self.gui.draw_map(
+            ctx,
+            graphics::Rect::new(0.0, 0.0, self.cfg.screen.width, self.cfg.screen.height),
+        )?;
 
         for player in self.players.iter() {
             for crab in player.crabs.iter() {

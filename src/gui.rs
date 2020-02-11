@@ -10,7 +10,7 @@ use std::collections::HashMap;
 pub struct GUI {
     cfg: Config,
     map: graphics::Image,
-    players: HashMap<String, Player>,
+    players: HashMap<&'static str, Player>,
     weapons: WeaponsMenu,
     shots: ShotImages,
 }
@@ -21,19 +21,19 @@ pub struct Config {
 }
 
 pub struct ImagesConfig {
-    pub map: String,
-    pub weapons: String,
+    pub map: &'static str,
+    pub weapons: &'static str,
     pub shots: ShotsConfig,
 }
 
 pub struct ShotsConfig {
-    pub pistol: String,
+    pub pistol: &'static str,
 }
 
 pub struct PlayerConfig {
-    pub name: String,
-    pub crab_image: String,
-    pub crab_firing_image: String,
+    pub name: &'static str,
+    pub crab_image: &'static str,
+    pub crab_firing_image: &'static str,
 }
 
 impl GUI {

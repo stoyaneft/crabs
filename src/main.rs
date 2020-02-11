@@ -5,10 +5,8 @@ use ggez::GameResult;
 use std::env;
 use std::path;
 
-use crabs::config;
+use crabs::config::CONFIG;
 use crabs::game::Game;
-
-const SCREEN_SIZE: (f32, f32) = (500.0, 300.0);
 
 pub fn main() -> GameResult {
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
@@ -21,48 +19,12 @@ pub fn main() -> GameResult {
 
     let (ctx, event_loop) = &mut ggez::ContextBuilder::new("crabs", "Stoyan Eftimov")
         .window_setup(ggez::conf::WindowSetup::default().title("Crabs!"))
-        .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_SIZE.0, SCREEN_SIZE.1))
+        .window_mode(
+            ggez::conf::WindowMode::default().dimensions(CONFIG.screen.width, CONFIG.screen.height),
+        )
         .add_resource_path(resource_dir)
         .build()?;
 
-    let config = config::GameConfig {
-        players_count: 2,
-        players: vec![
-            config::PlayerConfig {
-                name: String::from("Stoyan"),
-                crabs_count: 1,
-                crab: config::CrabConfig {
-                    image: String::from("/crab.png"),
-                    image_firing: String::from("/crab-firing.png"),
-                    width: 48,
-                    height: 32,
-                },
-            },
-            config::PlayerConfig {
-                name: String::from("PC"),
-                crabs_count: 1,
-                crab: config::CrabConfig {
-                    image: String::from("/crab2.png"),
-                    image_firing: String::from("/crab-firing2.png"),
-                    width: 48,
-                    height: 32,
-                },
-            },
-        ],
-        map: config::MapConfig {
-            image: String::from("/large-hill.png"),
-        },
-        weapons: config::WeaponsConfig {
-            image: String::from("/weapons.png"),
-        },
-        shots: config::ShotsConfig {
-            pistol: config::ShotConfig {
-                image: String::from("/bullet.png"),
-                width: 15,
-                height: 12,
-            },
-        },
-    };
-    let game = &mut Game::new(ctx, config)?;
+    let game = &mut Game::new(ctx, &CONFIG)?;
     event::run(ctx, event_loop, game)
 }
