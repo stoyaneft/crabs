@@ -3,7 +3,7 @@ use crate::shot::Shot;
 use crate::weapon::{new_weapon, Weapon, WeaponType};
 use ggez::graphics::Rect;
 use ggez::nalgebra as na;
-use ggez::nalgebra::{Point2, Vector2};
+use ggez::nalgebra::{Point2, Vector1, Vector2};
 
 pub struct Crab {
     pub velocity: na::Vector2<f32>,
@@ -82,6 +82,18 @@ impl Crab {
     pub fn set_weapon(&mut self, weapon: WeaponType) {
         println!("weapon set: {:?}", weapon);
         self.weapon = new_weapon(weapon)
+    }
+
+    pub fn has_weapon(&self) -> bool {
+        match self.weapon.kind() {
+            WeaponType::None => false,
+            _ => true,
+        }
+    }
+
+    pub fn set_weapon_direction(&mut self, seconds: f32) {
+        let rot = ggez::nalgebra::geometry::Rotation2::new(seconds * 1.0);
+        self.weapon.set_direction(rot * self.weapon.direction());
     }
 
     pub fn fire(&mut self) -> Option<Vec<Box<dyn Shot>>> {

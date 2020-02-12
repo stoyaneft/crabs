@@ -50,6 +50,14 @@ impl Player {
         self.crabs[self.active_crab_idx].set_weapon(weapon)
     }
 
+    pub fn set_weapon_direction(&mut self, seconds: f32) {
+        self.crabs[self.active_crab_idx].set_weapon_direction(seconds)
+    }
+
+    pub fn has_weapon(&mut self) -> bool {
+        self.crabs[self.active_crab_idx].has_weapon()
+    }
+
     pub fn fire(&mut self) -> Option<Vec<Box<dyn Shot>>> {
         self.crabs[self.active_crab_idx].fire()
     }

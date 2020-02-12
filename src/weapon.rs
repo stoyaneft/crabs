@@ -14,6 +14,10 @@ pub enum WeaponType {
 pub trait Weapon {
     fn fire(&self, _: Point2<f32>) -> Option<Vec<Box<dyn Shot>>>;
     fn kind(&self) -> WeaponType;
+    fn direction(&self) -> Vector2<f32> {
+        Vector2::new(0.0, 0.0)
+    }
+    fn set_direction(&mut self, _: Vector2<f32>) {}
 }
 
 pub fn new_weapon(weapon: WeaponType) -> Box<dyn Weapon> {
@@ -21,7 +25,7 @@ pub fn new_weapon(weapon: WeaponType) -> Box<dyn Weapon> {
         WeaponType::Skip => Box::new(Skip { kind: weapon }),
         WeaponType::Pistol => Box::new(Pistol {
             kind: weapon,
-            direction: Vector2::new(-1.0, 0.0),
+            direction: Vector2::new(1.0, 0.0),
         }),
         _ => Box::new(NoWeapon { kind: weapon }),
         // Weapon::Bazooka =>  {kind: weapon }
@@ -73,5 +77,13 @@ impl Weapon for Pistol {
 
     fn kind(&self) -> WeaponType {
         self.kind
+    }
+
+    fn direction(&self) -> Vector2<f32> {
+        self.direction
+    }
+
+    fn set_direction(&mut self, direction: Vector2<f32>) {
+        self.direction = direction;
     }
 }

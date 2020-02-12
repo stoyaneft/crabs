@@ -13,6 +13,7 @@ use ggez::{graphics, Context, GameResult};
 struct InputState {
     movement: f32,
     weapons_menu_open: bool,
+    weapon_direction: f32,
 }
 
 pub struct Game {
@@ -109,7 +110,7 @@ impl Game {
     }
 
     fn is_outside(rect: Rect, width: f32, height: f32) -> bool {
-        rect.top() < 0.0 || rect.left() < 0.0 || rect.bottom() > width || rect.right() > height
+        rect.top() < 0.0 || rect.left() < 0.0 || rect.bottom() > height || rect.right() > width
     }
 }
 
@@ -138,6 +139,9 @@ impl event::EventHandler for Game {
                 seconds,
                 &self.map,
             );
+
+            self.players[self.active_player_idx]
+                .set_weapon_direction(self.input.weapon_direction * seconds);
 
             for shot in self.shots.iter_mut() {
                 shot.update(seconds);
@@ -192,7 +196,7 @@ impl event::EventHandler for Game {
 
     fn key_down_event(
         &mut self,
-        _ctx: &mut Context,
+        ctx: &mut Context,
         keycode: event::KeyCode,
         _keymods: event::KeyMods,
         _repeat: bool,
@@ -200,7 +204,9 @@ impl event::EventHandler for Game {
         match keycode {
             event::KeyCode::Left => self.input.movement = -1.0,
             event::KeyCode::Right => self.input.movement = 1.0,
-            //            event::KeyCode::Escape => ctx.quit().unwrap(),
+            event::KeyCode::Up => self.input.weapon_direction = -1.0,
+            event::KeyCode::Down => self.input.weapon_direction = 1.0,
+            event::KeyCode::Escape => event::quit(ctx),
             _ => (),
         }
     }
@@ -213,10 +219,15 @@ impl event::EventHandler for Game {
     ) {
         match keycode {
             event::KeyCode::Left | event::KeyCode::Right => self.input.movement = 0.0,
-            event::KeyCode::Space => match self.players[self.active_player_idx].fire() {
-                None => return,
-                Some(shots) => self.spawn_shots(shots),
-            },
+            event::KeyCode::Up | event::KeyCode::Down => self.input.weapon_direction = 0.0,
+            event::KeyCode::Space => {
+                if !self.shooting_in_progress {
+                    match self.players[self.active_player_idx].fire() {
+                        None => return,
+                        Some(shots) => self.spawn_shots(shots),
+                    }
+                }
+            }
             _ => (),
         }
     }
@@ -226,10 +237,14 @@ impl event::EventHandler for Game {
             MouseButton::Right => {
                 self.input.weapons_menu_open = !self.input.weapons_menu_open;
             }
-            MouseButton::Left => match self.gui.is_weapon_activated(x, y) {
-                None => (),
-                Some(weapon) => self.players[self.active_player_idx].set_weapon(weapon),
-            },
+            MouseButton::Left => {
+                if self.input.weapons_menu_open {
+                    match self.gui.is_weapon_activated(x, y) {
+                        None => (),
+                        Some(weapon) => self.players[self.active_player_idx].set_weapon(weapon),
+                    }
+                }
+            }
             _ => (),
         }
     }

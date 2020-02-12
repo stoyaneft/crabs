@@ -1,7 +1,7 @@
 use crate::crab::Crab;
 use crate::game::Game;
 use crate::shot::{Shot, ShotKind};
-use crate::weapon::WeaponType;
+use crate::weapon::{Weapon, WeaponType};
 use ggez::graphics::{self, DrawParam, Rect, Text};
 use ggez::nalgebra::{Point2, Vector2};
 use ggez::{Context, GameResult};
@@ -13,6 +13,7 @@ pub struct GUI {
     players: HashMap<&'static str, Player>,
     weapons: WeaponsMenu,
     shots: ShotImages,
+    aim: graphics::Image,
 }
 
 pub struct Config {
@@ -53,6 +54,7 @@ impl GUI {
             );
         }
         let pistol = graphics::Image::new(ctx, &cfg.images.shots.pistol)?;
+        let aim = graphics::Image::new(ctx, "/aim.png")?;
         Ok(GUI {
             cfg,
             map,
@@ -62,6 +64,7 @@ impl GUI {
                 rect: Rect::new(0.0, 0.0, 0.0, 0.0),
             },
             shots: ShotImages { pistol },
+            aim,
         })
     }
 
@@ -101,7 +104,10 @@ impl GUI {
                     // with different dimentions.
                     DrawParam::default().dest(rect.point()).scale(scale),
                 )?;
-                self.draw_weapon(ctx, crab.weapon.kind(), rect)
+                self.draw_weapon(ctx, crab.weapon.kind(), rect);
+                let d = crab.weapon.direction().scale(50.0);
+                let aim_dest = Point2::new(rect.x + d.x, rect.y + d.y);
+                self.draw_aim(ctx, aim_dest)
             }
         }?;
         self.draw_health(ctx, crab)
@@ -187,6 +193,16 @@ impl GUI {
             )?;
         }
         Ok(())
+    }
+
+    fn draw_aim(&self, ctx: &mut Context, dest: Point2<f32>) -> GameResult {
+        graphics::draw(
+            ctx,
+            &self.aim,
+            DrawParam::default()
+                .dest(dest)
+                .scale(Vector2::new(0.05, 0.05)),
+        )
     }
 
     fn draw_weapon_at_idx(
