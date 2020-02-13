@@ -41,7 +41,7 @@ pub struct PistolShot {
 
 impl PistolShot {
     pub const SPEED: f32 = 250.0;
-    pub const DAMAGE: f32 = 55.0;
+    pub const DAMAGE: f32 = 5.0;
 }
 
 pub fn new_pistol_shot(rect: Rect, direction: Vector2<f32>) -> PistolShot {
@@ -60,7 +60,7 @@ impl Shot for PistolShot {
     fn update(&mut self, seconds: f32) {
         self.rect.x += self.velocity.x * seconds;
         self.rect.y += self.velocity.y * seconds;
-        println!("shot updated: {:?}", self.rect)
+        //        println!("shot updated: {:?}", self.rect)
     }
 
     fn damage(&self) -> f32 {

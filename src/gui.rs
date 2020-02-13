@@ -1,5 +1,5 @@
 use crate::crab::Crab;
-use crate::game::Game;
+use crate::game::{Game, GameShot};
 use crate::shot::{Shot, ShotKind};
 use crate::weapon::{Weapon, WeaponType};
 use ggez::graphics::{self, DrawParam, Rect, Text};
@@ -203,6 +203,27 @@ impl GUI {
                 .dest(dest)
                 .scale(Vector2::new(0.05, 0.05)),
         )
+    }
+
+    pub fn draw_map_hits(&self, ctx: &mut Context, shots: &Vec<GameShot>) -> GameResult {
+        for shot in shots {
+            //            println!("drawing shot: {:?}", shot);
+            let circle = graphics::Mesh::new_circle(
+                ctx,
+                graphics::DrawMode::fill(),
+                Point2::new(0.0, 0.0),
+                shot.damage(),
+                1.0,
+                graphics::BLACK,
+            )?;
+            let rect = shot.get_rect();
+            graphics::draw(
+                ctx,
+                &circle,
+                DrawParam::default().dest(Point2::new(rect.x, rect.y)),
+            )?;
+        }
+        Ok(())
     }
 
     fn draw_weapon_at_idx(

@@ -5,7 +5,7 @@ use crate::player::Player;
 use crate::shot::{Shot, ShotKind};
 use ggez::graphics::Rect;
 use ggez::input::mouse::MouseButton;
-use ggez::nalgebra::Vector2;
+use ggez::nalgebra::{Point2, Vector2};
 use ggez::{event, timer};
 use ggez::{graphics, Context, GameResult};
 
@@ -26,6 +26,7 @@ pub struct Game {
     shots: Vec<GameShot>,
     shooting_in_progress: bool,
     winner: String,
+    map_hits: Vec<GameShot>,
 }
 
 impl Game {
@@ -76,6 +77,7 @@ impl Game {
             shots: vec![],
             shooting_in_progress: false,
             winner: String::new(),
+            map_hits: vec![],
         })
     }
 }
@@ -100,9 +102,14 @@ impl Game {
         for shot in &mut self.shots {
             //            self.players[self.active_player_idx].handle_collisions(Box::new(shot.clone()), true);
             for (i, player) in self.players.iter_mut().enumerate() {
-                let hit =
+                let player_hit =
                     player.handle_collisions(Box::new(shot.clone()), i == self.active_player_idx);
-                if hit {
+                let map_hit = self.map.handle_collisions(Box::new(shot.clone()));
+                if map_hit {
+                    self.map_hits.push(shot.clone());
+                    //                    self.map_hits.push(Point2::new(100.0, 100.0));
+                }
+                if player_hit || map_hit {
                     shot.is_alive = false;
                 }
             }
@@ -153,6 +160,7 @@ impl event::EventHandler for Game {
             }
 
             self.handle_collisions();
+            //            println!("map hits: {:?}", self.map_hits);
 
             let width = self.cfg.screen.width;
             let height = self.cfg.screen.height;
@@ -169,6 +177,7 @@ impl event::EventHandler for Game {
             ctx,
             graphics::Rect::new(0.0, 0.0, self.cfg.screen.width, self.cfg.screen.height),
         )?;
+        self.gui.draw_map_hits(ctx, &self.map_hits)?;
 
         for player in self.players.iter() {
             for crab in player.crabs.iter() {
@@ -179,7 +188,7 @@ impl event::EventHandler for Game {
         }
 
         for shot in self.shots.iter() {
-            self.gui.draw_shot(ctx, &shot.shot);
+            self.gui.draw_shot(ctx, &shot.shot)?;
         }
 
         if self.input.weapons_menu_open {
@@ -187,7 +196,7 @@ impl event::EventHandler for Game {
         }
 
         if self.winner.len() > 0 {
-            self.gui.draw_winner(ctx, &self.winner);
+            self.gui.draw_winner(ctx, &self.winner)?;
         }
 
         graphics::present(ctx)?;
@@ -251,7 +260,7 @@ impl event::EventHandler for Game {
 }
 
 #[derive(Clone)]
-struct GameShot {
+pub struct GameShot {
     shot: Box<dyn Shot>,
     is_alive: bool,
 }

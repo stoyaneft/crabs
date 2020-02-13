@@ -1,10 +1,11 @@
+use crate::shot::Shot;
 use ggez::graphics;
 use ggez::nalgebra::Point2;
 use ggez::{Context, GameResult};
 use std::fmt;
 
 pub struct Map {
-    mask: Vec<Vec<u8>>,
+    mask: Vec<Vec<i8>>,
     width: u16,
     height: u16,
 }
@@ -14,7 +15,7 @@ impl Map {
         let (width, height) = (image.width() as usize, image.height() as usize);
         let data = image.to_rgba8(ctx)?;
         let alphas = data.iter().enumerate().filter(|(idx, _)| idx % 4 == 3);
-        let mut mask: Vec<Vec<u8>> = vec![vec![0; width]; height];
+        let mut mask: Vec<Vec<i8>> = vec![vec![0; width]; height];
         for (idx, (_, &val)) in alphas.enumerate() {
             let x = idx % width;
             let y = idx / width;
@@ -37,15 +38,36 @@ impl Map {
         self.height
     }
 
-    pub fn get(&self, x: usize, y: usize) -> Option<&u8> {
-        return self.mask.get(y).and(self.mask[y].get(x));
+    pub fn get(&self, x: usize, y: usize) -> Option<&i8> {
+        self.mask.get(y)?.get(x)
     }
 
     pub fn on_ground(&self, pos: Point2<f32>) -> bool {
         if let Some(&land) = self.get(pos.x as usize, pos.y as usize) {
-            return land > 0u8;
+            return land == 1i8;
         }
         false
+    }
+
+    pub fn handle_collisions(&mut self, shot: Box<dyn Shot>) -> bool {
+        let shot_rect = shot.get_rect();
+        let hit_point = Point2::new(shot_rect.x, shot_rect.y);
+        let hit = self.on_ground(hit_point);
+        if hit {
+            let r = shot.damage() as isize;
+            for i in -r..r + 1 {
+                for j in -r..r + 1 {
+                    let p = Point2::new(hit_point.x + i as f32, hit_point.y + j as f32);
+                    if ggez::nalgebra::distance(&hit_point, &p) <= r as f32 {
+                        if self.on_ground(p) {
+                            self.mask[p.y as usize][p.x as usize] = -1;
+                        }
+                    }
+                }
+            }
+        }
+
+        hit
     }
 }
 
