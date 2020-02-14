@@ -41,7 +41,7 @@ pub struct PistolShot {
 
 impl PistolShot {
     pub const SPEED: f32 = 250.0;
-    pub const DAMAGE: f32 = 5.0;
+    pub const DAMAGE: f32 = 20.0;
 }
 
 pub fn new_pistol_shot(rect: Rect, direction: Vector2<f32>) -> PistolShot {

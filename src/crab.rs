@@ -29,22 +29,18 @@ impl Crab {
 
     pub fn update(&mut self, mut direction: Vector2<f32>, seconds: f32, map: &Map) {
         let mut steps: f32 = 0.0;
-        if map.on_ground(Point2::new(
-            self.rect.x + self.rect.w / 2.0,
-            self.rect.y + self.rect.h,
-        )) {
+        if map.on_ground(self.bottom_middle()) {
             //            self.velocity.y = 0.0;
             while map.on_ground(Point2::new(
                 self.rect.x + self.rect.w / 2.0,
-                self.rect.y + self.rect.h - steps - 1.0,
+                self.rect.bottom() - steps - 1.0,
             )) {
                 steps += 1.0;
             }
         } else {
-            while !map.on_ground(Point2::new(
-                self.rect.x + self.rect.w / 2.0,
-                self.rect.y + self.rect.h,
-            )) {
+            while !map.on_ground(self.bottom_middle()) && (!map.on_ground(self.bottom_left()))
+                || !map.on_ground(self.bottom_right())
+            {
                 self.rect.y += 1.0;
             }
             //            self.velocity.y = Self::GRAVITY;
@@ -53,17 +49,10 @@ impl Crab {
         if steps < self.rect.h / 2.0 {
             self.rect.y -= steps;
         } else {
-            if direction.x == 1.0
-                && map.on_ground(Point2::new(
-                    self.rect.x + self.rect.w,
-                    self.rect.y + self.rect.h,
-                ))
-            {
+            if direction.x == 1.0 && map.on_ground(self.bottom_right()) {
                 return;
             }
-            if direction.x == -1.0
-                && map.on_ground(Point2::new(self.rect.x, self.rect.y + self.rect.h))
-            {
+            if direction.x == -1.0 && map.on_ground(self.bottom_left()) {
                 return;
             }
         }
@@ -110,6 +99,26 @@ impl Crab {
 
     pub fn reduce_health(&mut self, damage: f32) {
         self.health -= damage;
+    }
+
+    fn top_left(&self) -> Point2<f32> {
+        Point2::new(self.rect.left(), self.rect.top())
+    }
+
+    fn bottom_left(&self) -> Point2<f32> {
+        Point2::new(self.rect.left(), self.rect.bottom())
+    }
+
+    fn top_right(&self) -> Point2<f32> {
+        Point2::new(self.rect.right(), self.rect.top())
+    }
+
+    fn bottom_right(&self) -> Point2<f32> {
+        Point2::new(self.rect.right(), self.rect.bottom())
+    }
+
+    fn bottom_middle(&self) -> Point2<f32> {
+        Point2::new(self.rect.left() + self.rect.w / 2.0, self.rect.bottom())
     }
 }
 

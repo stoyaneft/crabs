@@ -1,7 +1,7 @@
 use crate::crab::Crab;
 use crate::game::{Game, GameShot};
 use crate::shot::{Shot, ShotKind};
-use crate::weapon::{Weapon, WeaponType};
+use crate::weapon::WeaponType;
 use ggez::graphics::{self, DrawParam, Rect, Text};
 use ggez::nalgebra::{Point2, Vector2};
 use ggez::{Context, GameResult};

@@ -1,3 +1,48 @@
+pub static CONFIG: GameConfig = GameConfig {
+    screen: Screen {
+        // width: 1280.0,
+        width: 500.0,
+        // height: 720.0,
+        height: 300.0,
+    },
+    players_count: 2,
+    players: [
+        PlayerConfig {
+            name: "Stoyan",
+            crabs_count: 1,
+            crab: CrabConfig {
+                image: "/crab.png",
+                image_firing: "/crab-firing.png",
+                width: 48,
+                height: 32,
+            },
+        },
+        PlayerConfig {
+            name: "PC",
+            crabs_count: 1,
+            crab: CrabConfig {
+                image: "/crab2.png",
+                image_firing: "/crab-firing2.png",
+                width: 48,
+                height: 32,
+            },
+        },
+    ],
+    map: MapConfig {
+        image: "/large-hill.png",
+    },
+    weapons: WeaponsConfig {
+        image: "/weapons.png",
+    },
+    shots: ShotsConfig {
+        pistol: ShotConfig {
+            image: "/bullet.png",
+            width: 15,
+            height: 12,
+        },
+    },
+};
+
 pub struct GameConfig {
     pub screen: Screen,
     pub players: [PlayerConfig; 2],
@@ -42,48 +87,3 @@ pub struct Screen {
     pub width: f32,
     pub height: f32,
 }
-
-pub static CONFIG: GameConfig = GameConfig {
-    screen: Screen {
-        width: 500.0,
-        height: 300.0,
-    },
-    players_count: 2,
-    players: [
-        PlayerConfig {
-            name: "Stoyan",
-            crabs_count: 1,
-            crab: CrabConfig {
-                image: "/crab.png",
-                image_firing: "/crab-firing.png",
-                width: 48,
-                height: 32,
-            },
-        },
-        PlayerConfig {
-            name: "PC",
-            crabs_count: 1,
-            crab: CrabConfig {
-                image: "/crab2.png",
-                image_firing: "/crab-firing2.png",
-                width: 48,
-                height: 32,
-            },
-        },
-    ],
-    map: MapConfig {
-        image: "/large-hill.png",
-    },
-    weapons: WeaponsConfig {
-        image: "/weapons.png",
-    },
-    shots: ShotsConfig {
-        pistol: ShotConfig {
-            image: "/bullet.png",
-            width: 15,
-            height: 12,
-        },
-    },
-};
-
-//static PLAYER_CFG: [PlayerConfig; 2] =
