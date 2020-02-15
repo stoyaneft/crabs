@@ -117,16 +117,18 @@ impl Game {
         &mut self.players[self.active_player_idx]
     }
 
+    fn is_crab_active(&self, name: &str) -> bool {
+        self.players[self.active_player_idx].is_crab_active(name)
+    }
+
     fn handle_collisions(&mut self) {
         for shot in &mut self.shots {
-            //            self.active_player().handle_collisions(Box::new(shot.clone()), true);
             for (i, player) in self.players.iter_mut().enumerate() {
                 let player_hit =
                     player.handle_collisions(Box::new(shot.clone()), i == self.active_player_idx);
                 let map_hit = self.map.handle_collisions(Box::new(shot.clone()));
                 if map_hit {
                     self.map_hits.push(shot.clone());
-                    //                    self.map_hits.push(Point2::new(100.0, 100.0));
                 }
                 if player_hit || map_hit {
                     shot.is_alive = false;
@@ -198,7 +200,6 @@ impl event::EventHandler for Game {
             }
 
             self.handle_collisions();
-            //            println!("map hits: {:?}", self.map_hits);
 
             let width = self.cfg.screen.width;
             let height = self.cfg.screen.height;
@@ -219,7 +220,7 @@ impl event::EventHandler for Game {
 
         for player in self.players.iter() {
             for crab in player.crabs.iter() {
-                self.gui.draw_crab(ctx, &player.name, crab, self.players[self.active_player_idx].name == player.name)?;
+                self.gui.draw_crab(ctx, &player.name, crab, self.is_crab_active(&crab.name))?;
                 // let rect = crab.get_rect();
                 // self.gui.draw_rect(ctx, rect)?;
             }

@@ -345,18 +345,18 @@ struct ImageSettings {
     height: f32,
 }
 
-static WEAPONS_MENU_ITEMS: &'static [WeaponInfo; 4] = &[
+static WEAPONS_MENU_ITEMS: &'static [WeaponInfo; 3] = &[
+    // WeaponInfo {
+    //     kind: WeaponType::Grenade,
+    //     image_pos: (0, 0),
+    // },
     WeaponInfo {
-        kind: WeaponType::Grenade,
-        image_pos: (0, 0),
+        kind: WeaponType::Skip,
+        image_pos: (1, 3),
     },
     WeaponInfo {
         kind: WeaponType::Bazooka,
         image_pos: (0, 2),
-    },
-    WeaponInfo {
-        kind: WeaponType::Skip,
-        image_pos: (1, 3),
     },
     WeaponInfo {
         kind: WeaponType::Pistol,

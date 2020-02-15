@@ -74,6 +74,10 @@ impl Player {
         self.crabs.iter().map(|crab| crab.get_health()).sum()
     }
 
+    pub fn is_crab_active(&self, name: &str) -> bool {
+        self.crabs[self.active_crab_idx].name == name
+    }
+
     fn active_crab(&mut self) -> &mut Crab {
         &mut self.crabs[self.active_crab_idx]
     }
