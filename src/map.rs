@@ -41,7 +41,7 @@ impl Map {
     }
 
     pub fn on_ground(&self, pos: Point2<f32>) -> bool {
-        if let Some(land) = self.get(pos.x as usize, pos.y as usize) {
+        if let Some(land) = self.get(pos.x.round() as usize, pos.y.round() as usize) {
             return land == 1i8;
         }
         false
@@ -90,7 +90,7 @@ mod tests {
     fn new_map() -> Map {
         let x = vec![1, 1, 1, 1];
         let o = vec![0, 0, 0, 0];
-    
+
         let image: Vec<&Vec<u8>> = vec![
             &o, &o, &o, &o,
             &o, &x, &x, &o,
@@ -98,7 +98,7 @@ mod tests {
         let data: Vec<u8> = image.iter().flat_map(|color| color.iter().cloned()).collect();
         Map::new(&data, 4, 2)
     }
-    
+
     fn new_shot(rect: Rect) -> Box<dyn Shot> {
         Box::new(new_pistol_shot(rect, Vector2::new(0.0, 0.0)))
     }
