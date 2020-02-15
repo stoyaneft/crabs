@@ -1,13 +1,15 @@
-use crate::config::GameConfig;
+use crate::config::{GameConfig, PlayerConfig, Screen};
 use crate::gui::{self, GUI};
 use crate::map::Map;
 use crate::player::Player;
+use crate::crab::Crab;
 use crate::shot::{Shot, ShotKind};
 use ggez::graphics::Rect;
 use ggez::input::mouse::MouseButton;
 use ggez::nalgebra::{Vector2};
 use ggez::{event, timer};
 use ggez::{graphics, Context, GameResult};
+use rand::{self, Rng};
 
 #[derive(Debug, Default)]
 struct InputState {
@@ -35,7 +37,7 @@ impl Game {
         let mut players_cfg = vec![];
         for i in 0..cfg.players_count {
             let i = i as usize;
-            let player = Player::new(&cfg.players[i], &cfg.screen);
+            let player = Game::new_player(&cfg.players[i], &cfg.screen);
             players.push(player);
             players_cfg.push(gui::PlayerConfig {
                 name: cfg.players[i].name,
@@ -97,12 +99,17 @@ impl Game {
     }
 
     fn switch_turn(&mut self) {
-        self.active_player_idx = (self.active_player_idx + 1) % self.players.len()
+        self.active_player().switch_crab();
+        self.active_player_idx = (self.active_player_idx + 1) % self.players.len();
+    }
+
+    fn active_player(&mut self) -> &mut Player {
+        &mut self.players[self.active_player_idx]
     }
 
     fn handle_collisions(&mut self) {
         for shot in &mut self.shots {
-            //            self.players[self.active_player_idx].handle_collisions(Box::new(shot.clone()), true);
+            //            self.active_player().handle_collisions(Box::new(shot.clone()), true);
             for (i, player) in self.players.iter_mut().enumerate() {
                 let player_hit =
                     player.handle_collisions(Box::new(shot.clone()), i == self.active_player_idx);
@@ -120,6 +127,25 @@ impl Game {
 
     fn is_outside(rect: Rect, width: f32, height: f32) -> bool {
         rect.top() < 0.0 || rect.left() < 0.0 || rect.bottom() > height || rect.right() > width
+    }
+
+    fn new_player(player_cfg: &PlayerConfig, screen_cfg: &Screen) -> Player {
+        let mut rng = rand::thread_rng();
+        let mut crabs: Vec<Crab> = vec![];
+
+        for i in 0..player_cfg.crabs_count {
+            let crab = Crab::new(
+                &format!("{}:{}", player_cfg.name, i),
+                graphics::Rect::new(
+                    rng.gen::<f32>() * screen_cfg.width - 1.0,
+                    100.0,
+                    player_cfg.crab.width as f32,
+                    player_cfg.crab.height as f32,
+                ),
+            );
+            crabs.push(crab);
+        }
+        Player::new(player_cfg.name, crabs)
     }
 }
 
@@ -233,7 +259,7 @@ impl event::EventHandler for Game {
             event::KeyCode::Up | event::KeyCode::Down => self.input.weapon_direction = 0.0,
             event::KeyCode::Space => {
                 if !self.shooting_in_progress {
-                    match self.players[self.active_player_idx].fire() {
+                    match self.active_player().fire() {
                         None => return,
                         Some(shots) => self.spawn_shots(shots),
                     }
@@ -252,7 +278,7 @@ impl event::EventHandler for Game {
                 if self.input.weapons_menu_open {
                     match self.gui.is_weapon_activated(x, y) {
                         None => (),
-                        Some(weapon) => self.players[self.active_player_idx].set_weapon(weapon),
+                        Some(weapon) => self.active_player().set_weapon(weapon),
                     }
                 }
             }

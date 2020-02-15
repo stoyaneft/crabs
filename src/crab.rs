@@ -16,6 +16,7 @@ pub struct Crab {
 impl Crab {
     pub const SPEED: f32 = 250.0;
     pub const GRAVITY: f32 = 50.0;
+    pub const HEALTH: f32 = 100.0;
 
     pub fn new(name: &str, rect: Rect) -> Self {
         Crab {
@@ -23,7 +24,7 @@ impl Crab {
             name: String::from(name),
             velocity: Vector2::new(Self::SPEED, 0.0),
             weapon: new_weapon(WeaponType::None),
-            health: 100.0,
+            health: Self::HEALTH,
         }
     }
 
