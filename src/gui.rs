@@ -50,9 +50,14 @@ impl GUI {
     const AIM_DISTANCE: f32 = 50.0;
     const ARROW_DISTANCE: f32 = 20.0;
     const HEALTH_DISTANCE: f32 = 20.0;
+    const WEAPONS_IMAGE_DISTANCE: f32 = 10.0;
+    const WINNER_BANNER_DISTANCE: f32 = 30.0;
+    const WEAPONS_IMAGE_WIDTH: f32 = 32.0;
+    const WEAPONS_IMAGE_HEIGHT: f32 = 32.0;
 
     pub fn new(ctx: &mut Context, cfg: Config) -> GameResult<Self> {
         let map = graphics::Image::new(ctx, &cfg.images.map)?;
+        let (map_width, map_height) = (map.width() as f32, map.height() as f32);
         let weapons = graphics::Image::new(ctx, &cfg.images.weapons)?;
         let mut players = HashMap::new();
         for player_cfg in cfg.players.iter() {
@@ -75,7 +80,12 @@ impl GUI {
             players,
             weapons: WeaponsMenu {
                 image: weapons,
-                rect: Rect::new(0.0, 0.0, 0.0, 0.0),
+                rect: Rect::new(
+                    map_width - WEAPONS_MENU_ITEMS.len() as f32 * GUI::WEAPONS_IMAGE_WIDTH - GUI::WEAPONS_IMAGE_DISTANCE,
+                    map_height - GUI::WEAPONS_IMAGE_HEIGHT - GUI::WEAPONS_IMAGE_DISTANCE,
+                    GUI::WEAPONS_IMAGE_WIDTH,
+                    GUI::WEAPONS_IMAGE_HEIGHT
+                ),
             },
             shots: ShotImages { pistol, bazooka },
             aim: ImageSettings{
@@ -93,7 +103,8 @@ impl GUI {
 
     pub fn draw_map(&self, ctx: &mut Context, rect: Rect) -> GameResult {
         let pos = Point2::new(rect.x, rect.y);
-        graphics::draw(ctx, &self.map, DrawParam::default().dest(pos))
+        let scale = Vector2::new(rect.w/self.map.width() as f32, rect.h/self.map.height() as f32);
+        graphics::draw(ctx, &self.map, DrawParam::default().dest(pos).scale(scale))
     }
 
     pub fn get_map(&self) -> &graphics::Image {
@@ -196,16 +207,11 @@ impl GUI {
         graphics::draw(
             ctx,
             &winner_banner,
-            DrawParam::default().dest(Point2::new(self.map.width() as f32 / 2.0 - 20.0, 30.0)),
+            DrawParam::default().dest(Point2::new(self.map.width() as f32 / 2.0 - 20.0, Self::WINNER_BANNER_DISTANCE)),
         )
     }
 
-    pub fn init_weapons_menu(&mut self, rect: Rect) {
-        self.weapons.rect = rect;
-    }
-
     pub fn draw_weapons_menu(&self, ctx: &mut Context) -> GameResult {
-        // Currently we draw only one fixed weapon.
         for idx in 0..WEAPONS_MENU_ITEMS.len() {
             self.draw_weapon_at_idx(
                 ctx,
@@ -223,12 +229,16 @@ impl GUI {
     }
 
     fn draw_aim(&self, ctx: &mut Context, dest: Point2<f32>) -> GameResult {
+        let scale = Vector2::new(
+            self.aim.width/self.aim.image.width() as f32,
+            self.aim.height/self.aim.image.height() as f32,
+        );
         graphics::draw(
             ctx,
             &self.aim.image,
             DrawParam::default()
                 .dest(dest)
-                .scale(Vector2::new(0.05, 0.05)),
+                .scale(scale),
         )
     }
 
@@ -248,7 +258,6 @@ impl GUI {
 
     pub fn draw_map_hits(&self, ctx: &mut Context, shots: &Vec<GameShot>) -> GameResult {
         for shot in shots {
-            //            println!("drawing shot: {:?}", shot);
             let circle = graphics::Mesh::new_circle(
                 ctx,
                 graphics::DrawMode::fill(),
@@ -280,9 +289,9 @@ impl GUI {
             &self.weapons.image,
             DrawParam::default()
                 .src(Rect::new(
-                    weapon.image_pos.0 as f32 * WEAPONS_IMAGE_WIDTH
+                    weapon.image_pos.0 as f32 * Self::WEAPONS_IMAGE_WIDTH
                         / self.weapons.image.width() as f32,
-                    weapon.image_pos.1 as f32 * WEAPONS_IMAGE_HEIGHT
+                    weapon.image_pos.1 as f32 * Self::WEAPONS_IMAGE_HEIGHT
                         / self.weapons.image.height() as f32,
                     dest.w / self.weapons.image.width() as f32,
                     dest.h / self.weapons.image.height() as f32,
@@ -354,5 +363,4 @@ static WEAPONS_MENU_ITEMS: &'static [WeaponInfo; 4] = &[
         image_pos: (0, 9),
     },
 ];
-const WEAPONS_IMAGE_WIDTH: f32 = 32.0;
-const WEAPONS_IMAGE_HEIGHT: f32 = 32.0;
+

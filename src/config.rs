@@ -48,8 +48,8 @@ pub static CONFIG: GameConfig = GameConfig {
     },
     aim: ImageConfig {
         image: "/aim.png",
-        width: 20,
-        height: 20,
+        width: 30,
+        height: 30,
     },
     arrow: ImageConfig {
         image: "/arrow.png",

@@ -45,7 +45,7 @@ impl Game {
                 crab_firing_image: cfg.players[i].crab.image_firing,
             });
         }
-        let mut gui = GUI::new(
+        let gui = GUI::new(
             ctx,
             gui::Config {
                 images: gui::ImagesConfig {
@@ -69,7 +69,6 @@ impl Game {
                 players: players_cfg,
             },
         )?;
-        gui.init_weapons_menu(graphics::Rect::new(350.0, 250.0, 32.0, 32.0));
         let map_image = gui.get_map();
         let data = map_image.to_rgba8(ctx)?;
         let map = Map::new(&data, map_image.width() as u16, map_image.height() as u16);
