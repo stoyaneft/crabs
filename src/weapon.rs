@@ -11,55 +11,16 @@ pub enum WeaponType {
     Skip,
 }
 
-pub trait Weapon {
-    fn fire(&self, _: Point2<f32>) -> Option<Vec<Box<dyn Shot>>>;
-    fn kind(&self) -> WeaponType;
-    fn direction(&self) -> Vector2<f32> {
-        Vector2::new(0.0, 0.0)
-    }
-    fn set_direction(&mut self, _: Vector2<f32>) {}
-}
-
-pub fn new_weapon(weapon: WeaponType) -> Box<dyn Weapon> {
-    match weapon {
-        WeaponType::Skip => Box::new(Skip { kind: weapon }),
-        WeaponType::Pistol => Box::new(Pistol {
-            kind: weapon,
-            direction: Vector2::new(1.0, 0.0),
-        }),
-        WeaponType::Bazooka => Box::new(Bazooka {
-            kind: weapon,
-            direction: Vector2::new(1.0, 0.0),
-        }),
-        _ => Box::new(NoWeapon { kind: weapon }),
-    }
-}
-
-pub struct NoWeapon {
-    kind: WeaponType,
-}
-impl Weapon for NoWeapon {
-    fn fire(&self, _: Point2<f32>) -> Option<Vec<Box<dyn Shot>>> {
-        println!("none firing");
-        None
-    }
-
-    fn kind(&self) -> WeaponType {
-        self.kind
-    }
+pub trait Fireable {
+    fn fire(&self, _: Point2<f32>) -> Vec<Box<dyn Shot>>;
 }
 
 pub struct Skip {
     kind: WeaponType,
 }
-impl Weapon for Skip {
-    fn fire(&self, _: Point2<f32>) -> Option<Vec<Box<dyn Shot>>> {
-        println!("skip firing");
-        Some(vec![])
-    }
-
-    fn kind(&self) -> WeaponType {
-        self.kind
+impl Fireable for Skip {
+    fn fire(&self, _: Point2<f32>) -> Vec<Box<dyn Shot>> {
+        vec![]
     }
 }
 
@@ -68,25 +29,52 @@ pub struct Pistol {
     direction: Vector2<f32>,
 }
 
-impl Weapon for Pistol {
-    fn fire(&self, pos: Point2<f32>) -> Option<Vec<Box<dyn Shot>>> {
+impl Fireable for Pistol {
+    fn fire(&self, pos: Point2<f32>) -> Vec<Box<dyn Shot>> {
         println!("pistol firing");
-        Some(vec![Box::new(new_pistol_shot(
+        vec![Box::new(new_pistol_shot(
             Rect::new(pos.x, pos.y, 15.0, 12.0),
             self.direction,
+        ))]
+    }
+}
+
+pub struct Bazooka {
+    kind: WeaponType,
+    direction: Vector2<f32>,
+}
+
+impl Fireable for Bazooka {
+    fn fire(&self, pos: Point2<f32>) -> Vec<Box<dyn Shot>> {
+        println!("bazooka firing");
+        Some(vec![Box::new(new_bazooka_shot(
+            Rect::new(pos.x, pos.y, 20.0, 10.0),
+            self.direction,
         ))])
+    }
+}
+
+pub struct Weapon<T: Fireable> {
+    weapon: T,
+    kind: WeaponType,
+    direction: Vector2<f32>,
+}
+
+impl<T: Fireable> Weapon<T> {
+    fn new(&self, weapon: WeaponType) -> Weapon<T> {
+        Weapon {
+            kind: weapon,
+            direction: Vector2::new(1.0, 0.0),
+            weapon: Box<dyn T>::new(),
+        }
     }
 
     fn kind(&self) -> WeaponType {
         self.kind
     }
 
-    fn direction(&self) -> Vector2<f32> {
-        self.direction
-    }
-
-    fn set_direction(&mut self, direction: Vector2<f32>) {
-        self.direction = direction;
+    fn fire(&self, pos: Point2<f32>) -> Vec<Box<dyn Shot>> {
+        self.weapon.fire(pos)
     }
 }
 

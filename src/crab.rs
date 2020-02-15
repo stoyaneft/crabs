@@ -1,13 +1,13 @@
 use crate::map::Map;
 use crate::shot::Shot;
-use crate::weapon::{new_weapon, Weapon, WeaponType};
+use crate::weapon::{Weapon, WeaponType, Skip, Pistol, Bazooka};
 use ggez::graphics::Rect;
-use ggez::nalgebra as na;
 use ggez::nalgebra::{Point2, Vector2};
 
 pub struct Crab {
     pub velocity: na::Vector2<f32>,
-    pub weapon: Box<dyn Weapon>,
+    pub weapon: WeaponType,
+    pub weapon_direction: Vector2<f32>,
     pub name: String,
     rect: Rect,
     health: f32,
@@ -23,7 +23,7 @@ impl Crab {
             rect,
             name: String::from(name),
             velocity: Vector2::new(Self::SPEED, 0.0),
-            weapon: new_weapon(WeaponType::None),
+            weapon: WeaponType::None,
             health: Self::HEALTH,
         }
     }
@@ -65,14 +65,11 @@ impl Crab {
 
     pub fn set_weapon(&mut self, weapon: WeaponType) {
         println!("weapon set: {:?}", weapon);
-        self.weapon = new_weapon(weapon)
+        self.weapon = weapon
     }
 
     pub fn has_weapon(&self) -> bool {
-        match self.weapon.kind() {
-            WeaponType::None => false,
-            _ => true,
-        }
+       self.weapon != WeaponType::None
     }
 
     pub fn set_weapon_direction(&mut self, seconds: f32) {
@@ -80,8 +77,21 @@ impl Crab {
         self.weapon.set_direction(rot * self.weapon.direction());
     }
 
-    pub fn fire(&mut self) -> Option<Vec<Box<dyn Shot>>> {
-        self.weapon.fire(Point2::new(self.rect.x, self.rect.y))
+    pub fn fire(&mut self) -> Vec<Box<dyn Shot>> {
+        // let weapon = match self.weapon {
+        //     WeaponType::Skip => Weapon::new(self.weapon),
+        //     WeaponType::Pistol => Some(Pistol {
+        //         kind: weapon,
+        //         direction: Vector2::new(1.0, 0.0),
+        //     }),
+        //     WeaponType::Bazooka => Some(Pistol {
+        //         kind: weapon,
+        //         direction: Vector2::new(1.0, 0.0),
+        //     }),
+        //     _ => None,
+        // }
+        let weapon = Weapon::new(self.weapon);
+        weapon.fire(Point2::new(self.rect.x, self.rect.y))
     }
 
     pub fn get_rect(&self) -> Rect {
