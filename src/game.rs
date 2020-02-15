@@ -53,6 +53,17 @@ impl Game {
                     weapons: cfg.weapons.image,
                     shots: gui::ShotsConfig {
                         pistol: cfg.shots.pistol.image,
+                        bazooka: cfg.shots.bazooka.image,
+                    },
+                    aim: gui::ImageConfig{
+                        image: cfg.aim.image,
+                        width: cfg.aim.width as f32,
+                        height: cfg.aim.height as f32,
+                    },
+                    arrow: gui::ImageConfig{
+                        image: cfg.arrow.image,
+                        width: cfg.arrow.width as f32,
+                        height: cfg.arrow.height as f32,
                     },
                 },
                 players: players_cfg,
@@ -209,9 +220,9 @@ impl event::EventHandler for Game {
 
         for player in self.players.iter() {
             for crab in player.crabs.iter() {
-                let rect = crab.get_rect();
-                self.gui.draw_crab(ctx, &player.name, crab)?;
-                self.gui.draw_rect(ctx, rect)?;
+                self.gui.draw_crab(ctx, &player.name, crab, self.players[self.active_player_idx].name == player.name)?;
+                // let rect = crab.get_rect();
+                // self.gui.draw_rect(ctx, rect)?;
             }
         }
 

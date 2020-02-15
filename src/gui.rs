@@ -12,7 +12,8 @@ pub struct GUI {
     players: HashMap<&'static str, Player>,
     weapons: WeaponsMenu,
     shots: ShotImages,
-    aim: graphics::Image,
+    aim: ImageSettings,
+    arrow: ImageSettings,
 }
 
 pub struct Config {
@@ -24,10 +25,19 @@ pub struct ImagesConfig {
     pub map: &'static str,
     pub weapons: &'static str,
     pub shots: ShotsConfig,
+    pub aim: ImageConfig,
+    pub arrow: ImageConfig,
+}
+
+pub struct ImageConfig {
+    pub image: &'static str,
+    pub width: f32,
+    pub height: f32,
 }
 
 pub struct ShotsConfig {
     pub pistol: &'static str,
+    pub bazooka: &'static str,
 }
 
 pub struct PlayerConfig {
@@ -37,6 +47,10 @@ pub struct PlayerConfig {
 }
 
 impl GUI {
+    const AIM_DISTANCE: f32 = 50.0;
+    const ARROW_DISTANCE: f32 = 20.0;
+    const HEALTH_DISTANCE: f32 = 20.0;
+
     pub fn new(ctx: &mut Context, cfg: Config) -> GameResult<Self> {
         let map = graphics::Image::new(ctx, &cfg.images.map)?;
         let weapons = graphics::Image::new(ctx, &cfg.images.weapons)?;
@@ -53,7 +67,9 @@ impl GUI {
             );
         }
         let pistol = graphics::Image::new(ctx, &cfg.images.shots.pistol)?;
-        let aim = graphics::Image::new(ctx, "/aim.png")?;
+        let bazooka = graphics::Image::new(ctx, &cfg.images.shots.bazooka)?;
+        let aim = graphics::Image::new(ctx, &cfg.images.aim.image)?;
+        let arrow = graphics::Image::new(ctx, &cfg.images.arrow.image)?;
         Ok(GUI {
             map,
             players,
@@ -61,8 +77,17 @@ impl GUI {
                 image: weapons,
                 rect: Rect::new(0.0, 0.0, 0.0, 0.0),
             },
-            shots: ShotImages { pistol },
-            aim,
+            shots: ShotImages { pistol, bazooka },
+            aim: ImageSettings{
+                image: aim,
+                width: cfg.images.aim.width,
+                height: cfg.images.aim.height,
+            },
+            arrow: ImageSettings{
+                image: arrow,
+                width: cfg.images.arrow.width,
+                height: cfg.images.arrow.height,
+            },
         })
     }
 
@@ -75,7 +100,7 @@ impl GUI {
         &self.map
     }
 
-    pub fn draw_crab(&self, ctx: &mut Context, player_name: &str, crab: &Crab) -> GameResult {
+    pub fn draw_crab(&self, ctx: &mut Context, player_name: &str, crab: &Crab, is_active: bool) -> GameResult {
         let player = self.players.get(player_name).unwrap();
         let crab_rect = crab.get_rect();
         let scale = Vector2::new(
@@ -98,16 +123,20 @@ impl GUI {
                 graphics::draw(
                     ctx,
                     &player.crab_firing_image,
-                    // TODO: same rect used for crab and firing_crab. Could be a problem for images
-                    // with different dimentions.
                     DrawParam::default().dest(rect.point()).scale(scale),
                 )?;
                 self.draw_weapon(ctx, crab.weapon.kind(), rect)?;
-                let d = crab.weapon.direction().scale(50.0);
-                let aim_dest = Point2::new(rect.x + d.x, rect.y + d.y);
-                self.draw_aim(ctx, aim_dest)
+                if is_active && (crab.weapon.kind() == WeaponType::Pistol || crab.weapon.kind() == WeaponType::Bazooka) {
+                    let d = crab.weapon.direction().scale(Self::AIM_DISTANCE);
+                    let aim_dest = Point2::new(rect.x + d.x, rect.y + d.y);
+                    self.draw_aim(ctx, aim_dest)?;
+                }
+                Ok(())
             }
         }?;
+        if is_active {
+            self.draw_arrow(ctx, Point2::new(crab_rect.x + crab_rect.w / 2.0, crab_rect.top() - Self::ARROW_DISTANCE))?;
+        }
         self.draw_health(ctx, crab)
     }
 
@@ -119,7 +148,7 @@ impl GUI {
             &health,
             DrawParam::default().dest(Point2::new(
                 rect.x + rect.w / 4.0,
-                crab.get_rect().top() - 20.0,
+                crab.get_rect().top() - Self::HEALTH_DISTANCE,
             )),
         )
     }
@@ -136,7 +165,7 @@ impl GUI {
     pub fn draw_shot(&self, ctx: &mut Context, shot: &Box<dyn Shot>) -> GameResult {
         let image = match shot.kind() {
             ShotKind::Pistol => &self.shots.pistol,
-            //            _ => not_implemented!(),
+            ShotKind::Bazooka => &self.shots.bazooka,
         };
         let rect = shot.get_rect();
         let scale = Vector2::new(
@@ -196,10 +225,24 @@ impl GUI {
     fn draw_aim(&self, ctx: &mut Context, dest: Point2<f32>) -> GameResult {
         graphics::draw(
             ctx,
-            &self.aim,
+            &self.aim.image,
             DrawParam::default()
                 .dest(dest)
                 .scale(Vector2::new(0.05, 0.05)),
+        )
+    }
+
+    fn draw_arrow(&self, ctx: &mut Context, dest: Point2<f32>) -> GameResult {
+        let scale = Vector2::new(
+            self.arrow.width/self.arrow.image.width() as f32,
+            self.arrow.height/self.arrow.image.height() as f32,
+        );
+        graphics::draw(
+            ctx,
+            &self.arrow.image,
+            DrawParam::default()
+                .dest(Point2::new(dest.x - self.arrow.width/2.0, dest.y - self.arrow.height as f32))
+                .scale(scale),
         )
     }
 
@@ -284,6 +327,13 @@ struct WeaponsMenu {
 
 struct ShotImages {
     pistol: graphics::Image,
+    bazooka: graphics::Image,
+}
+
+struct ImageSettings {
+    image: graphics::Image,
+    width: f32,
+    height: f32,
 }
 
 static WEAPONS_MENU_ITEMS: &'static [WeaponInfo; 4] = &[

@@ -1,4 +1,4 @@
-use crate::shot::{new_pistol_shot, Shot};
+use crate::shot::{new_pistol_shot, new_bazooka_shot, Shot};
 use ggez::graphics::Rect;
 use ggez::nalgebra::{Point2, Vector2};
 
@@ -27,9 +27,11 @@ pub fn new_weapon(weapon: WeaponType) -> Box<dyn Weapon> {
             kind: weapon,
             direction: Vector2::new(1.0, 0.0),
         }),
+        WeaponType::Bazooka => Box::new(Bazooka {
+            kind: weapon,
+            direction: Vector2::new(1.0, 0.0),
+        }),
         _ => Box::new(NoWeapon { kind: weapon }),
-        // Weapon::Bazooka =>  {kind: weapon }
-        // Weapon::None => NoWeapon {kind: weapon }
     }
 }
 
@@ -71,6 +73,34 @@ impl Weapon for Pistol {
         println!("pistol firing");
         Some(vec![Box::new(new_pistol_shot(
             Rect::new(pos.x, pos.y, 15.0, 12.0),
+            self.direction,
+        ))])
+    }
+
+    fn kind(&self) -> WeaponType {
+        self.kind
+    }
+
+    fn direction(&self) -> Vector2<f32> {
+        self.direction
+    }
+
+    fn set_direction(&mut self, direction: Vector2<f32>) {
+        self.direction = direction;
+    }
+}
+
+
+pub struct Bazooka {
+    kind: WeaponType,
+    direction: Vector2<f32>,
+}
+
+impl Weapon for Bazooka {
+    fn fire(&self, pos: Point2<f32>) -> Option<Vec<Box<dyn Shot>>> {
+        println!("Bazooka firing");
+        Some(vec![Box::new(new_bazooka_shot(
+            Rect::new(pos.x, pos.y, 20.0, 10.0),
             self.direction,
         ))])
     }
