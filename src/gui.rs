@@ -124,21 +124,21 @@ impl GUI {
             self.weapons.rect.w,
             self.weapons.rect.h,
         );
-        match crab.weapon.kind() {
-            WeaponType::None => graphics::draw(
+        match &crab.weapon {
+            None => graphics::draw(
                 ctx,
                 &player.crab_image,
                 DrawParam::default().dest(rect.point()).scale(scale),
             ),
-            _ => {
+            Some(weapon) => {
                 graphics::draw(
                     ctx,
                     &player.crab_firing_image,
                     DrawParam::default().dest(rect.point()).scale(scale),
                 )?;
-                self.draw_weapon(ctx, crab.weapon.kind(), rect)?;
-                if is_active && (crab.weapon.kind() == WeaponType::Pistol || crab.weapon.kind() == WeaponType::Bazooka) {
-                    let d = crab.weapon.direction().scale(Self::AIM_DISTANCE);
+                self.draw_weapon(ctx, weapon.kind(), rect)?;
+                if is_active && (weapon.kind() == WeaponType::Pistol || weapon.kind() == WeaponType::Bazooka) {
+                    let d = weapon.direction().scale(Self::AIM_DISTANCE);
                     let aim_dest = Point2::new(rect.x + d.x, rect.y + d.y);
                     self.draw_aim(ctx, aim_dest)?;
                 }

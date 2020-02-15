@@ -270,10 +270,8 @@ impl event::EventHandler for Game {
             event::KeyCode::Up | event::KeyCode::Down => self.input.weapon_direction = 0.0,
             event::KeyCode::Space => {
                 if !self.shooting_in_progress {
-                    match self.active_player().fire() {
-                        None => return,
-                        Some(shots) => self.spawn_shots(shots),
-                    }
+                    let shots = self.active_player().fire();
+                    self.spawn_shots(shots);
                 }
             }
             _ => (),

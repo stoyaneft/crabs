@@ -85,7 +85,6 @@ mod tests {
     use super::*;
     use crate::shot::new_pistol_shot;
     use ggez::nalgebra::{Vector2};
-    use ggez::graphics::Rect;
 
     fn new_map() -> Map {
         let x = vec![1, 1, 1, 1];
@@ -99,8 +98,8 @@ mod tests {
         Map::new(&data, 4, 2)
     }
 
-    fn new_shot(rect: Rect) -> Box<dyn Shot> {
-        Box::new(new_pistol_shot(rect, Vector2::new(0.0, 0.0)))
+    fn new_shot(pos: Point2<f32>) -> Box<dyn Shot> {
+        Box::new(new_pistol_shot(pos, Vector2::new(0.0, 0.0)))
     }
 
     #[test]
@@ -127,10 +126,10 @@ mod tests {
     #[test]
     fn map_handle_collisions() {
         let mut map = new_map();
-        assert!(map.handle_collisions(new_shot(Rect::new(0.0, 0.0, 1.0, 1.0))) == false);
-        assert!(map.handle_collisions(new_shot(Rect::new(-1.0, 0.0, 1.0, 1.0))) == false);
+        assert!(map.handle_collisions(new_shot(Point2::new(0.0, 0.0,))) == false);
+        assert!(map.handle_collisions(new_shot(Point2::new(-1.0, 0.0))) == false);
 
-        assert!(map.handle_collisions(new_shot(Rect::new(1.0, 1.0, 1.0, 1.0))) == true);
+        assert!(map.handle_collisions(new_shot(Point2::new(1.0, 1.0,))) == true);
         assert_eq!(map.get(0, 1), Some(0));
         assert_eq!(map.get(1, 1), Some(-1));
         assert_eq!(map.get(2, 1), Some(-1));

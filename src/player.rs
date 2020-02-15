@@ -42,7 +42,7 @@ impl Player {
         self.active_crab().has_weapon()
     }
 
-    pub fn fire(&mut self) -> Option<Vec<Box<dyn Shot>>> {
+    pub fn fire(&mut self) -> Vec<Box<dyn Shot>> {
         self.active_crab().fire()
     }
 
@@ -88,18 +88,19 @@ mod tests {
 
     use super::*;
     use crate::shot::new_pistol_shot;
+    use ggez::nalgebra::Point2;
     use ggez::graphics::Rect;
 
     fn new_player() -> Player {
         let crabs = vec![
             Crab::new("gosho", Rect::new(2.0, 2.0, 2.0, 2.0)),
-            Crab::new("pesho", Rect::new(5.0, 5.0, 1.0, 1.0)),
+            Crab::new("pesho", Rect::new(50.0, 50.0, 1.0, 1.0)),
         ];
         Player::new("ivan", crabs)
     }
 
-    fn new_shot(rect: Rect) -> Box<dyn Shot> {
-        Box::new(new_pistol_shot(rect, Vector2::new(0.0, 0.0)))
+    fn new_shot(pos: Point2<f32>) -> Box<dyn Shot> {
+        Box::new(new_pistol_shot(pos, Vector2::new(0.0, 0.0)))
     }
 
     #[test]
@@ -135,34 +136,28 @@ mod tests {
     #[test]
     fn player_handle_collisions_no() {
         let mut player = new_player();
-        assert_eq!(player.handle_collisions(new_shot(Rect::new(0.0, 0.0, 1.0, 1.0)), false), false);
-        assert_eq!(player.crabs.len(), 2);
+        assert_eq!(player.handle_collisions(new_shot(Point2::new(100.0, 100.0)), false), false);
+        assert!(player.crabs[0].get_health() == Crab::HEALTH);
+        assert!(player.crabs[1].get_health() == Crab::HEALTH);
 
-        assert_eq!(player.handle_collisions(new_shot(Rect::new(2.0, 2.0, 1.0, 1.0)), true), false);
-        assert_eq!(player.crabs.len(), 2);
-    }
-
-    #[test]
-    fn player_handle_collisions_reduces_health() {
-        let mut player = new_player();
-        assert_eq!(player.handle_collisions(new_shot(Rect::new(2.0, 2.0, 1.0, 1.0)), false), true);
-        assert!(player.crabs[0].get_health() < Crab::HEALTH);
+        assert_eq!(player.handle_collisions(new_shot(Point2::new(2.0, 2.0)), true), false);
+        assert!(player.crabs[0].get_health() == Crab::HEALTH);
         assert!(player.crabs[1].get_health() == Crab::HEALTH);
     }
 
     #[test]
     fn player_handle_collisions_overlapping() {
         let mut player = new_player();
-        assert_eq!(player.handle_collisions(new_shot(Rect::new(3.0, 3.0, 3.0, 3.0)), false), true);
+        assert_eq!(player.handle_collisions(new_shot(Point2::new(3.0, 3.0)), false), true);
         assert!(player.crabs[0].get_health() < Crab::HEALTH);
-        assert!(player.crabs[1].get_health() < Crab::HEALTH);
+        assert!(player.crabs[1].get_health() == Crab::HEALTH);
     }
 
     #[test]
     fn player_handle_collisions_kills() {
         let mut player = new_player();
         player.active_crab().reduce_health(Crab::HEALTH);
-        assert_eq!(player.handle_collisions(new_shot(Rect::new(2.0, 2.0, 1.0, 1.0)), false), true);
+        assert_eq!(player.handle_collisions(new_shot(Point2::new(2.0, 2.0)), false), true);
         assert_eq!(player.crabs.len(), 1);
         assert_eq!(player.active_crab().name, "pesho")
     }

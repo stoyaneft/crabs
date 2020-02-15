@@ -1,13 +1,13 @@
 use crate::map::Map;
 use crate::shot::Shot;
-use crate::weapon::{Weapon, WeaponType, Skip, Pistol, Bazooka};
+use crate::weapon::{Weapon, WeaponType};
 use ggez::graphics::Rect;
 use ggez::nalgebra::{Point2, Vector2};
+use ggez::nalgebra as na;
 
 pub struct Crab {
-    pub velocity: na::Vector2<f32>,
-    pub weapon: WeaponType,
-    pub weapon_direction: Vector2<f32>,
+    pub velocity: Vector2<f32>,
+    pub weapon: Option<Weapon>,
     pub name: String,
     rect: Rect,
     health: f32,
@@ -23,7 +23,7 @@ impl Crab {
             rect,
             name: String::from(name),
             velocity: Vector2::new(Self::SPEED, 0.0),
-            weapon: WeaponType::None,
+            weapon: None,
             health: Self::HEALTH,
         }
     }
@@ -65,33 +65,28 @@ impl Crab {
 
     pub fn set_weapon(&mut self, weapon: WeaponType) {
         println!("weapon set: {:?}", weapon);
-        self.weapon = weapon
+        self.weapon = Some(Weapon::new(weapon))
     }
 
     pub fn has_weapon(&self) -> bool {
-       self.weapon != WeaponType::None
+       self.weapon.is_some()
     }
 
     pub fn set_weapon_direction(&mut self, seconds: f32) {
-        let rot = ggez::nalgebra::geometry::Rotation2::new(seconds * 1.0);
-        self.weapon.set_direction(rot * self.weapon.direction());
+        match &mut self.weapon {
+            None => (),
+            Some(weapon) => {
+                let rot = ggez::nalgebra::geometry::Rotation2::new(seconds * 1.0);
+                weapon.set_direction(rot * weapon.direction())
+            },
+        }
     }
 
     pub fn fire(&mut self) -> Vec<Box<dyn Shot>> {
-        // let weapon = match self.weapon {
-        //     WeaponType::Skip => Weapon::new(self.weapon),
-        //     WeaponType::Pistol => Some(Pistol {
-        //         kind: weapon,
-        //         direction: Vector2::new(1.0, 0.0),
-        //     }),
-        //     WeaponType::Bazooka => Some(Pistol {
-        //         kind: weapon,
-        //         direction: Vector2::new(1.0, 0.0),
-        //     }),
-        //     _ => None,
-        // }
-        let weapon = Weapon::new(self.weapon);
-        weapon.fire(Point2::new(self.rect.x, self.rect.y))
+        match &self.weapon {
+            None => vec![],
+            Some(weapon) => weapon.fire(Point2::new(self.rect.x, self.rect.y)),
+        }
     }
 
     pub fn get_rect(&self) -> Rect {
@@ -201,7 +196,7 @@ mod tests {
         assert_eq!(crab.health, Crab::HEALTH);
         assert_eq!(crab.rect, Rect::default());
         assert_eq!(crab.velocity, Vector2::new(Crab::SPEED, 0.0));
-        assert_eq!(crab.weapon.kind(), WeaponType::None);
+        assert!(crab.weapon.is_none());
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use ggez::graphics::Rect;
-use ggez::nalgebra::Vector2;
+use ggez::nalgebra::{Vector2, Point2};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ShotKind {
@@ -43,20 +43,22 @@ pub struct PistolShot {
 impl PistolShot {
     pub const SPEED: f32 = 250.0;
     pub const DAMAGE: f32 = 5.0;
+    pub const WIDTH: f32 = 15.0;
+    pub const HEIGHT: f32 = 12.0;
 }
 
-pub fn new_pistol_shot(rect: Rect, direction: Vector2<f32>) -> PistolShot {
+pub fn new_pistol_shot(pos: Point2<f32>, direction: Vector2<f32>) -> PistolShot {
     PistolShot {
         kind: ShotKind::Pistol,
-        rect,
+        rect: Rect::new(pos.x, pos.y, PistolShot::WIDTH, PistolShot::HEIGHT),
         velocity: PistolShot::SPEED * direction,
     }
 }
 
-pub fn new_bazooka_shot(rect: Rect, direction: Vector2<f32>) -> BazookaShot {
+pub fn new_bazooka_shot(pos: Point2<f32>, direction: Vector2<f32>) -> BazookaShot {
     BazookaShot {
         kind: ShotKind::Bazooka,
-        rect,
+        rect: Rect::new(pos.x, pos.y, BazookaShot::WIDTH, BazookaShot::HEIGHT),
         velocity: BazookaShot::SPEED * direction,
     }
 }
@@ -92,6 +94,8 @@ impl BazookaShot {
     pub const SPEED: f32 = 250.0;
     pub const DAMAGE: f32 = 25.0;
     pub const MASS: f32 = 500.0;
+    pub const WIDTH: f32 = 20.0;
+    pub const HEIGHT: f32 = 10.0;
 }
 
 impl Shot for BazookaShot {
