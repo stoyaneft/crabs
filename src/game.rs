@@ -5,7 +5,7 @@ use crate::player::Player;
 use crate::shot::{Shot, ShotKind};
 use ggez::graphics::Rect;
 use ggez::input::mouse::MouseButton;
-use ggez::nalgebra::{Point2, Vector2};
+use ggez::nalgebra::{Vector2};
 use ggez::{event, timer};
 use ggez::{graphics, Context, GameResult};
 
@@ -57,7 +57,9 @@ impl Game {
             },
         )?;
         gui.init_weapons_menu(graphics::Rect::new(350.0, 250.0, 32.0, 32.0));
-        let map = Map::new(ctx, gui.get_map())?;
+        let map_image = gui.get_map();
+        let data = map_image.to_rgba8(ctx)?;
+        let map = Map::new(&data, map_image.width() as u16, map_image.height() as u16);
         //        println!("map: {:?}", map);
 
         // Necessary for placing players on the ground.

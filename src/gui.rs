@@ -1,5 +1,5 @@
 use crate::crab::Crab;
-use crate::game::{Game, GameShot};
+use crate::game::{GameShot};
 use crate::shot::{Shot, ShotKind};
 use crate::weapon::WeaponType;
 use ggez::graphics::{self, DrawParam, Rect, Text};
@@ -8,7 +8,6 @@ use ggez::{Context, GameResult};
 use std::collections::HashMap;
 
 pub struct GUI {
-    cfg: Config,
     map: graphics::Image,
     players: HashMap<&'static str, Player>,
     weapons: WeaponsMenu,
@@ -56,7 +55,6 @@ impl GUI {
         let pistol = graphics::Image::new(ctx, &cfg.images.shots.pistol)?;
         let aim = graphics::Image::new(ctx, "/aim.png")?;
         Ok(GUI {
-            cfg,
             map,
             players,
             weapons: WeaponsMenu {
@@ -104,7 +102,7 @@ impl GUI {
                     // with different dimentions.
                     DrawParam::default().dest(rect.point()).scale(scale),
                 )?;
-                self.draw_weapon(ctx, crab.weapon.kind(), rect);
+                self.draw_weapon(ctx, crab.weapon.kind(), rect)?;
                 let d = crab.weapon.direction().scale(50.0);
                 let aim_dest = Point2::new(rect.x + d.x, rect.y + d.y);
                 self.draw_aim(ctx, aim_dest)

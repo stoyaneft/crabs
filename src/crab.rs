@@ -3,7 +3,7 @@ use crate::shot::Shot;
 use crate::weapon::{new_weapon, Weapon, WeaponType};
 use ggez::graphics::Rect;
 use ggez::nalgebra as na;
-use ggez::nalgebra::{Point2, Vector1, Vector2};
+use ggez::nalgebra::{Point2, Vector2};
 
 pub struct Crab {
     pub velocity: na::Vector2<f32>,
@@ -101,6 +101,7 @@ impl Crab {
         self.health -= damage;
     }
 
+    #[allow(dead_code)]
     fn top_left(&self) -> Point2<f32> {
         Point2::new(self.rect.left(), self.rect.top())
     }
@@ -109,6 +110,7 @@ impl Crab {
         Point2::new(self.rect.left(), self.rect.bottom())
     }
 
+    #[allow(dead_code)]
     fn top_right(&self) -> Point2<f32> {
         Point2::new(self.rect.right(), self.rect.top())
     }
@@ -122,11 +124,16 @@ impl Crab {
     }
 }
 
-//impl fmt::Debug for Crab {
-//    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//        for v in self.mask.iter() {
-//            write!(f, "{:?}\n", v);
-//        }
-//        write!(f, "dimensions: {:?}", self.image.dimensions())
-//    }
-//}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*; 
+
+    #[test]
+    fn crab_moves() {
+        Crab::new("gosho", Rect::default());
+        assert_eq!(2 + 2, 4);
+    }
+}
+

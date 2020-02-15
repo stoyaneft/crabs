@@ -1,7 +1,5 @@
 use crate::shot::Shot;
-use ggez::graphics;
 use ggez::nalgebra::Point2;
-use ggez::{Context, GameResult};
 use std::fmt;
 
 pub struct Map {
@@ -11,9 +9,9 @@ pub struct Map {
 }
 
 impl Map {
-    pub fn new(ctx: &mut Context, image: &graphics::Image) -> GameResult<Self> {
-        let (width, height) = (image.width() as usize, image.height() as usize);
-        let data = image.to_rgba8(ctx)?;
+    pub fn new(data: &Vec<u8>, width: u16, height: u16) -> Map {
+        let width = width as usize;
+        let height = height as usize;
         let alphas = data.iter().enumerate().filter(|(idx, _)| idx % 4 == 3);
         let mut mask: Vec<Vec<i8>> = vec![vec![0; width]; height];
         for (idx, (_, &val)) in alphas.enumerate() {
@@ -23,11 +21,11 @@ impl Map {
                 mask[y][x] = 1;
             }
         }
-        Ok(Map {
+        Map {
             mask,
             width: width as u16,
             height: height as u16,
-        })
+        }
     }
 
     pub fn get_width(&self) -> u16 {
@@ -38,12 +36,12 @@ impl Map {
         self.height
     }
 
-    pub fn get(&self, x: usize, y: usize) -> Option<&i8> {
-        self.mask.get(y)?.get(x)
+    pub fn get(&self, x: usize, y: usize) -> Option<i8> {
+        self.mask.get(y)?.get(x).map(|v|*v)
     }
 
     pub fn on_ground(&self, pos: Point2<f32>) -> bool {
-        if let Some(&land) = self.get(pos.x as usize, pos.y as usize) {
+        if let Some(land) = self.get(pos.x as usize, pos.y as usize) {
             return land == 1i8;
         }
         false
@@ -77,5 +75,66 @@ impl fmt::Debug for Map {
             write!(f, "{:?}\n", v)?;
         }
         write!(f, "dimensions: {:?} x {:?}", self.width, self.height)
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use crate::shot::new_pistol_shot;
+    use ggez::nalgebra::{Vector2};
+    use ggez::graphics::Rect;
+
+    fn new_map() -> Map {
+        let x = vec![1, 1, 1, 1];
+        let o = vec![0, 0, 0, 0];
+    
+        let image: Vec<&Vec<u8>> = vec![
+            &o, &o, &o, &o,
+            &o, &x, &x, &o,
+        ];
+        let data: Vec<u8> = image.iter().flat_map(|color| color.iter().cloned()).collect();
+        Map::new(&data, 4, 2)
+    }
+    
+    fn new_shot(rect: Rect) -> Box<dyn Shot> {
+        Box::new(new_pistol_shot(rect, Vector2::new(0.0, 0.0)))
+    }
+
+    #[test]
+    fn map_new() {
+        let map = new_map();
+        assert_eq!(map.get_width(), 4);
+        assert_eq!(map.get_height(), 2);
+        assert_eq!(map.get(0, 1), Some(0));
+        assert_eq!(map.get(1, 1), Some(1));
+        assert_eq!(map.get(2, 1), Some(1));
+        assert_eq!(map.get(3, 1), Some(0));
+        assert_eq!(map.get(4, 1), None);
+    }
+
+    #[test]
+    fn map_on_ground() {
+        let map = new_map();
+        assert!(map.on_ground(Point2::new(0.0, 0.0)) == false);
+        assert!(map.on_ground(Point2::new(1.0, 1.0)) == true);
+        assert!(map.on_ground(Point2::new(2.0, 1.0)) == true);
+        assert!(map.on_ground(Point2::new(-1.0, 1.0)) == false);
+    }
+
+    #[test]
+    fn map_handle_collisions() {
+        let mut map = new_map();
+        assert!(map.handle_collisions(new_shot(Rect::new(0.0, 0.0, 1.0, 1.0))) == false);
+        assert!(map.handle_collisions(new_shot(Rect::new(-1.0, 0.0, 1.0, 1.0))) == false);
+
+        assert!(map.handle_collisions(new_shot(Rect::new(1.0, 1.0, 1.0, 1.0))) == true);
+        assert_eq!(map.get(0, 1), Some(0));
+        assert_eq!(map.get(1, 1), Some(-1));
+        assert_eq!(map.get(2, 1), Some(-1));
+        assert_eq!(map.get(3, 1), Some(0));
+        assert_eq!(map.get(4, 1), None);
     }
 }

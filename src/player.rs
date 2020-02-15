@@ -4,7 +4,6 @@ use crate::map::Map;
 use crate::shot::Shot;
 use crate::weapon::WeaponType;
 use ggez::graphics;
-use ggez::graphics::Rect;
 use ggez::nalgebra::Vector2;
 use rand::{self, Rng};
 use std::collections::HashSet;
