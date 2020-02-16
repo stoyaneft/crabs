@@ -1,7 +1,7 @@
 pub static CONFIG: GameConfig = GameConfig {
     screen: Screen {
-        width: 1024.0,
-        height: 744.0,
+        width: 1321.0,
+        height: 960.0,
     },
     players_count: 2,
     players: [
@@ -27,7 +27,7 @@ pub static CONFIG: GameConfig = GameConfig {
         },
     ],
     map: MapConfig {
-        image: "/map2.png",
+        image: "/map.png",
     },
     weapons: WeaponsConfig {
         image: "/weapons.png",
