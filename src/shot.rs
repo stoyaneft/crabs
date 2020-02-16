@@ -2,118 +2,61 @@ use ggez::graphics::Rect;
 use ggez::nalgebra::{Vector2, Point2};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum ShotKind {
+pub enum ShotType {
     Pistol,
     Bazooka,
 }
 
-pub trait Shot: ShotClone {
-    fn kind(&self) -> ShotKind;
-    fn update(&mut self, seconds: f32);
-    fn damage(&self) -> f32;
-    fn get_rect(&self) -> Rect;
-}
-
-pub trait ShotClone {
-    fn clone_box(&self) -> Box<dyn Shot>;
-}
-
-impl<T> ShotClone for T
-where
-    T: 'static + Shot + Clone,
-{
-    fn clone_box(&self) -> Box<dyn Shot> {
-        Box::new(self.clone())
-    }
-}
-
-impl Clone for Box<dyn Shot> {
-    fn clone(&self) -> Box<dyn Shot> {
-        self.clone_box()
-    }
-}
-
 #[derive(Clone)]
-pub struct PistolShot {
-    kind: ShotKind,
+pub struct Shot {
+    cfg: ShotConfig,
     rect: Rect,
     velocity: Vector2<f32>,
+    kind: ShotType,
 }
 
-impl PistolShot {
-    pub const SPEED: f32 = 250.0;
-    pub const DAMAGE: f32 = 5.0;
-    pub const WIDTH: f32 = 15.0;
-    pub const HEIGHT: f32 = 12.0;
-}
-
-pub fn new_pistol_shot(pos: Point2<f32>, direction: Vector2<f32>) -> PistolShot {
-    PistolShot {
-        kind: ShotKind::Pistol,
-        rect: Rect::new(pos.x, pos.y, PistolShot::WIDTH, PistolShot::HEIGHT),
-        velocity: PistolShot::SPEED * direction,
-    }
-}
-
-pub fn new_bazooka_shot(pos: Point2<f32>, direction: Vector2<f32>) -> BazookaShot {
-    BazookaShot {
-        kind: ShotKind::Bazooka,
-        rect: Rect::new(pos.x, pos.y, BazookaShot::WIDTH, BazookaShot::HEIGHT),
-        velocity: BazookaShot::SPEED * direction,
-    }
-}
-
-impl Shot for PistolShot {
-    fn kind(&self) -> ShotKind {
-        self.kind
+impl Shot {
+    pub fn new(cfg: ShotConfig, kind: ShotType, pos: Point2<f32>, direction: Vector2<f32>) -> Self {
+        Self {
+            cfg,
+            rect: Rect::new(pos.x, pos.y, cfg.width, cfg.height),
+            velocity: cfg.speed * direction,
+            kind,
+        }
     }
 
-    fn update(&mut self, seconds: f32) {
+    pub fn update(&mut self, seconds: f32) {
         self.rect.x += self.velocity.x * seconds;
         self.rect.y += self.velocity.y * seconds;
-        //        println!("shot updated: {:?}", self.rect)
+        self.velocity.y += self.cfg.mass * seconds;
     }
 
-    fn damage(&self) -> f32 {
-        Self::DAMAGE
+    pub fn damage(&self) -> f32 {
+        self.cfg.damage
     }
 
-    fn get_rect(&self) -> Rect {
+    pub fn get_rect(&self) -> Rect {
         self.rect
     }
-}
 
-#[derive(Clone)]
-pub struct BazookaShot {
-    kind: ShotKind,
-    rect: Rect,
-    velocity: Vector2<f32>,
-}
-
-impl BazookaShot {
-    pub const SPEED: f32 = 250.0;
-    pub const DAMAGE: f32 = 25.0;
-    pub const MASS: f32 = 500.0;
-    pub const WIDTH: f32 = 20.0;
-    pub const HEIGHT: f32 = 10.0;
-}
-
-impl Shot for BazookaShot {
-    fn kind(&self) -> ShotKind {
+    pub fn get_kind(&self) -> ShotType {
         self.kind
     }
-
-    fn update(&mut self, seconds: f32) {
-        self.rect.x += self.velocity.x * seconds;
-        self.rect.y += self.velocity.y * seconds;
-        self.velocity.y += Self::MASS * seconds;
-    }
-
-    fn damage(&self) -> f32 {
-        Self::DAMAGE
-    }
-
-    fn get_rect(&self) -> Rect {
-        self.rect
-    }
 }
+
+#[derive(Clone, Copy)]
+pub struct ShotConfig {
+    pub speed: f32,
+    pub damage: f32,
+    pub mass: f32,
+    pub width: f32,
+    pub height: f32,
+}
+
+// struct ShotConfig {
+//     pub SPEED: f32 = 250.0;
+//     pub DAMAGE: f32 = 25.0;
+//     pub MASS: f32 = 500.0;
+//     pub WIDTH: f32 = 20.0;
+//     pub HEIGHT: f32 = 10.0;
+// }

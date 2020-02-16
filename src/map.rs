@@ -47,7 +47,7 @@ impl Map {
         false
     }
 
-    pub fn handle_collisions(&mut self, shot: Box<dyn Shot>) -> bool {
+    pub fn handle_collisions(&mut self, shot: Shot) -> bool {
         let shot_rect = shot.get_rect();
         let hit_point = Point2::new(shot_rect.x, shot_rect.y);
         let hit = self.on_ground(hit_point);
@@ -83,7 +83,7 @@ impl fmt::Debug for Map {
 mod tests {
 
     use super::*;
-    use crate::shot::new_pistol_shot;
+    use crate::shot::{ShotConfig, Shot, ShotType};
     use ggez::nalgebra::{Vector2};
 
     fn new_map() -> Map {
@@ -98,8 +98,15 @@ mod tests {
         Map::new(&data, 4, 2)
     }
 
-    fn new_shot(pos: Point2<f32>) -> Box<dyn Shot> {
-        Box::new(new_pistol_shot(pos, Vector2::new(0.0, 0.0)))
+    fn new_shot(pos: Point2<f32>) -> Shot {
+        let cfg = ShotConfig{
+            speed: 1.0,
+            damage: 1.0,
+            width: 1.0,
+            height: 1.0,
+            mass: 0.0,
+        };
+        Shot::new(cfg, ShotType::Pistol, pos, Vector2::new(0.0, 0.0))
     }
 
     #[test]

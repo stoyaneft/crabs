@@ -42,7 +42,7 @@ impl Player {
         self.active_crab().has_weapon()
     }
 
-    pub fn fire(&mut self) -> Vec<Box<dyn Shot>> {
+    pub fn fire(&mut self) -> Vec<Shot> {
         self.active_crab().fire()
     }
 
@@ -50,7 +50,7 @@ impl Player {
         self.crabs.retain(|crab| crab.name != name);
     }
 
-    pub fn handle_collisions(&mut self, shot: Box<dyn Shot>, skip_active: bool) -> bool {
+    pub fn handle_collisions(&mut self, shot: Shot, skip_active: bool) -> bool {
         let mut hit = false;
         let mut killed = HashSet::new();
         let active_crab = self.active_crab().name.clone();
@@ -87,7 +87,7 @@ impl Player {
 mod tests {
 
     use super::*;
-    use crate::shot::new_pistol_shot;
+    use crate::shot::{ShotType, ShotConfig};
     use ggez::nalgebra::Point2;
     use ggez::graphics::Rect;
 
@@ -99,8 +99,15 @@ mod tests {
         Player::new("ivan", crabs)
     }
 
-    fn new_shot(pos: Point2<f32>) -> Box<dyn Shot> {
-        Box::new(new_pistol_shot(pos, Vector2::new(0.0, 0.0)))
+    fn new_shot(pos: Point2<f32>) -> Shot {
+        let cfg = ShotConfig{
+            speed: 1.0,
+            damage: 1.0,
+            width: 1.0,
+            height: 1.0,
+            mass: 0.0,
+        };
+        Shot::new(cfg, ShotType::Pistol, pos, Vector2::new(0.0, 0.0))
     }
 
     #[test]

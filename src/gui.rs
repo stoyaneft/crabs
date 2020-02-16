@@ -1,6 +1,6 @@
 use crate::crab::Crab;
 use crate::game::{GameShot};
-use crate::shot::{Shot, ShotKind};
+use crate::shot::{Shot, ShotType};
 use crate::weapon::WeaponType;
 use ggez::graphics::{self, DrawParam, Rect, Text};
 use ggez::nalgebra::{Point2, Vector2};
@@ -173,10 +173,10 @@ impl GUI {
         self.draw_weapon_at_idx(ctx, idx as u8, rect, Vector2::new(0.5, 0.5))
     }
 
-    pub fn draw_shot(&self, ctx: &mut Context, shot: &Box<dyn Shot>) -> GameResult {
-        let image = match shot.kind() {
-            ShotKind::Pistol => &self.shots.pistol,
-            ShotKind::Bazooka => &self.shots.bazooka,
+    pub fn draw_shot(&self, ctx: &mut Context, shot: &Shot) -> GameResult {
+        let image = match shot.get_kind() {
+            ShotType::Pistol => &self.shots.pistol,
+            ShotType::Bazooka => &self.shots.bazooka,
         };
         let rect = shot.get_rect();
         let scale = Vector2::new(

@@ -35,15 +35,21 @@ pub static CONFIG: GameConfig = GameConfig {
         image: "/weapons.png",
     },
     shots: ShotsConfig {
-        pistol: ImageConfig {
+        pistol: ShotConfig {
             image: "/bullet.png",
-            width: 15,
-            height: 12,
+            width: 15.0,
+            height: 12.0,
+            damage: 10.0,
+            speed: 250.0,
+            mass: 0.0,
         },
-        bazooka: ImageConfig {
+        bazooka: ShotConfig {
             image: "/bullet.png",
-            width: 20,
-            height: 10,
+            width: 20.0,
+            height: 10.0,
+            damage: 25.0,
+            speed: 250.0,
+            mass: 500.0,
         },
     },
     aim: ImageConfig {
@@ -91,8 +97,17 @@ pub struct WeaponsConfig {
 }
 
 pub struct ShotsConfig {
-    pub pistol: ImageConfig,
-    pub bazooka: ImageConfig,
+    pub pistol: ShotConfig,
+    pub bazooka: ShotConfig,
+}
+
+pub struct ShotConfig {
+    pub image: &'static str,
+    pub speed: f32,
+    pub damage: f32,
+    pub mass: f32,
+    pub width: f32,
+    pub height: f32,
 }
 
 pub struct ImageConfig {

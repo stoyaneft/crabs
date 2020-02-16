@@ -82,7 +82,7 @@ impl Crab {
         }
     }
 
-    pub fn fire(&mut self) -> Vec<Box<dyn Shot>> {
+    pub fn fire(&mut self) -> Vec<Shot> {
         match &self.weapon {
             None => vec![],
             Some(weapon) => weapon.fire(Point2::new(self.rect.x, self.rect.y)),

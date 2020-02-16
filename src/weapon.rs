@@ -1,5 +1,7 @@
-use crate::shot::{new_pistol_shot, new_bazooka_shot, Shot};
+use crate::shot::{Shot, ShotType, ShotConfig};
 use ggez::nalgebra::{Point2, Vector2};
+use crate::config::CONFIG;
+
 use std::fmt;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -10,27 +12,39 @@ pub enum WeaponType {
 }
 
 pub trait Fireable {
-    fn fire(&self, _: Point2<f32>, _: Vector2<f32>) -> Vec<Box<dyn Shot>>;
+    fn fire(&self, _: Point2<f32>, _: Vector2<f32>) -> Vec<Shot>;
 }
 
 pub struct Skip {}
 impl Fireable for Skip {
-    fn fire(&self, _: Point2<f32>, _: Vector2<f32>) -> Vec<Box<dyn Shot>> {
+    fn fire(&self, _: Point2<f32>, _: Vector2<f32>) -> Vec<Shot> {
         vec![]
     }
 }
 
 pub struct Pistol {}
 impl Fireable for Pistol {
-    fn fire(&self, pos: Point2<f32>, d: Vector2<f32>) -> Vec<Box<dyn Shot>> {
-        vec![Box::new(new_pistol_shot(pos, d))]
+    fn fire(&self, pos: Point2<f32>, d: Vector2<f32>) -> Vec<Shot> {
+        vec![Shot::new(ShotConfig{
+            speed: CONFIG.shots.pistol.speed,
+            damage: CONFIG.shots.pistol.damage,
+            mass: CONFIG.shots.pistol.mass,
+            width: CONFIG.shots.pistol.width,
+            height: CONFIG.shots.pistol.height,
+        }, ShotType::Pistol, pos, d)]
     }
 }
 
 pub struct Bazooka {}
 impl Fireable for Bazooka {
-    fn fire(&self, pos: Point2<f32>, d: Vector2<f32>) -> Vec<Box<dyn Shot>> {
-        vec![Box::new(new_bazooka_shot(pos, d))]
+    fn fire(&self, pos: Point2<f32>, d: Vector2<f32>) -> Vec<Shot> {
+        vec![Shot::new(ShotConfig{
+            speed: CONFIG.shots.bazooka.speed,
+            damage: CONFIG.shots.bazooka.damage,
+            mass: CONFIG.shots.bazooka.mass,
+            width: CONFIG.shots.bazooka.width,
+            height: CONFIG.shots.bazooka.height,
+        }, ShotType::Bazooka, pos, d)]
     }
 }
 
@@ -53,7 +67,7 @@ impl Weapon {
         self.kind
     }
 
-    pub fn fire(&self, pos: Point2<f32>) -> Vec<Box<dyn Shot>> {
+    pub fn fire(&self, pos: Point2<f32>) -> Vec<Shot> {
         self.weapon.fire(pos, self.direction)
     }
 

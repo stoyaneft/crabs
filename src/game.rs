@@ -3,7 +3,7 @@ use crate::gui::{self, GUI};
 use crate::map::Map;
 use crate::player::Player;
 use crate::crab::Crab;
-use crate::shot::{Shot, ShotKind};
+use crate::shot::{Shot, ShotType};
 use ggez::graphics::Rect;
 use ggez::input::mouse::MouseButton;
 use ggez::nalgebra::{Vector2};
@@ -97,7 +97,7 @@ impl Game {
 }
 
 impl Game {
-    fn spawn_shots(&mut self, shots: Vec<Box<dyn Shot>>) {
+    fn spawn_shots(&mut self, shots: Vec<Shot>) {
         self.shots = shots
             .iter()
             .map(|shot| GameShot {
@@ -122,11 +122,11 @@ impl Game {
     }
 
     fn handle_collisions(&mut self) {
-        for shot in &mut self.shots {
+        for shot in self.shots.iter_mut() {
             for (i, player) in self.players.iter_mut().enumerate() {
                 let player_hit =
-                    player.handle_collisions(Box::new(shot.clone()), i == self.active_player_idx);
-                let map_hit = self.map.handle_collisions(Box::new(shot.clone()));
+                    player.handle_collisions(shot.shot.clone(), i == self.active_player_idx);
+                let map_hit = self.map.handle_collisions(shot.shot.clone());
                 if map_hit {
                     self.map_hits.push(shot.clone());
                 }
@@ -298,24 +298,24 @@ impl event::EventHandler for Game {
 
 #[derive(Clone)]
 pub struct GameShot {
-    shot: Box<dyn Shot>,
+    shot:  Shot,
     is_alive: bool,
 }
 
-impl Shot for GameShot {
-    fn kind(&self) -> ShotKind {
-        self.shot.kind()
+impl GameShot {
+    pub fn get_kind(&self) -> ShotType {
+        self.shot.get_kind()
     }
 
-    fn update(&mut self, seconds: f32) {
+    pub fn update(&mut self, seconds: f32) {
         self.shot.update(seconds)
     }
 
-    fn damage(&self) -> f32 {
+    pub fn damage(&self) -> f32 {
         self.shot.damage()
     }
 
-    fn get_rect(&self) -> Rect {
+    pub fn get_rect(&self) -> Rect {
         self.shot.get_rect()
     }
 }
