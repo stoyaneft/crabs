@@ -1,15 +1,13 @@
 pub static CONFIG: GameConfig = GameConfig {
     screen: Screen {
-        // width: 1280.0,
-        width: 500.0,
-        // height: 720.0,
-        height: 300.0,
+        width: 1024.0,
+        height: 744.0,
     },
     players_count: 2,
     players: [
         PlayerConfig {
             name: "Stoyan",
-            crabs_count: 1,
+            crabs_count: 3,
             crab: CrabConfig {
                 image: "/crab.png",
                 image_firing: "/crab-firing.png",
@@ -19,7 +17,7 @@ pub static CONFIG: GameConfig = GameConfig {
         },
         PlayerConfig {
             name: "PC",
-            crabs_count: 1,
+            crabs_count: 3,
             crab: CrabConfig {
                 image: "/crab2.png",
                 image_firing: "/crab-firing2.png",
@@ -29,7 +27,7 @@ pub static CONFIG: GameConfig = GameConfig {
         },
     ],
     map: MapConfig {
-        image: "/large-hill.png",
+        image: "/map2.png",
     },
     weapons: WeaponsConfig {
         image: "/weapons.png",
@@ -50,6 +48,11 @@ pub static CONFIG: GameConfig = GameConfig {
             damage: 25.0,
             speed: 250.0,
             mass: 500.0,
+        },
+        power: PowerConfig {
+            min: 0.0,
+            max: 2.0,
+            time: 3.0,
         },
     },
     aim: ImageConfig {
@@ -82,6 +85,12 @@ pub struct CrabConfig {
     pub height: u16,
 }
 
+pub struct PowerConfig {
+    pub min: f32,
+    pub max: f32,
+    pub time: f32,
+}
+
 pub struct PlayerConfig {
     pub name: &'static str,
     pub crabs_count: u8,
@@ -99,6 +108,7 @@ pub struct WeaponsConfig {
 pub struct ShotsConfig {
     pub pistol: ShotConfig,
     pub bazooka: ShotConfig,
+    pub power: PowerConfig,
 }
 
 pub struct ShotConfig {

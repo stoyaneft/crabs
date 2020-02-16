@@ -42,14 +42,11 @@ impl Crab {
             self.rect.x + self.rect.w / 2.0,
             self.rect.bottom() - steps - 1.0,
         )) {
-            println!("underground");
             steps += 1.0;
         }
-        if 0.0 < self.rect.h && steps > self.rect.h {
-            println!("cannot climb");
+        if 0.0 < self.rect.h && steps > self.rect.h && direction.x != 0.0 {
             self.rect.x = old_x;
         } else {
-            println!("climbing");
             self.rect.y -= steps;
         }
 
@@ -59,12 +56,10 @@ impl Crab {
                 self.rect.bottom() < map.get_height() as f32
             {
                 self.rect.y += 1.0;
-                println!("falling")
             }
     }
 
     pub fn set_weapon(&mut self, weapon: WeaponType) {
-        println!("weapon set: {:?}", weapon);
         self.weapon = Some(Weapon::new(weapon))
     }
 
@@ -82,10 +77,10 @@ impl Crab {
         }
     }
 
-    pub fn fire(&mut self) -> Vec<Shot> {
+    pub fn fire(&mut self, power: f32) -> Vec<Shot> {
         match &self.weapon {
             None => vec![],
-            Some(weapon) => weapon.fire(Point2::new(self.rect.x, self.rect.y)),
+            Some(weapon) => weapon.fire(Point2::new(self.rect.x, self.rect.y), power),
         }
     }
 

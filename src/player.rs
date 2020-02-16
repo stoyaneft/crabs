@@ -42,8 +42,8 @@ impl Player {
         self.active_crab().has_weapon()
     }
 
-    pub fn fire(&mut self) -> Vec<Shot> {
-        self.active_crab().fire()
+    pub fn fire(&mut self, power: f32) -> Vec<Shot> {
+        self.active_crab().fire(power)
     }
 
     pub fn kill_crab(&mut self, name: String) {

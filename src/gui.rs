@@ -52,6 +52,8 @@ impl GUI {
     const HEALTH_DISTANCE: f32 = 20.0;
     const WEAPONS_IMAGE_DISTANCE: f32 = 10.0;
     const WINNER_BANNER_DISTANCE: f32 = 30.0;
+    const POWER_DISTANCE: f32 = 10.0;
+    const POWER_HEIGHT: f32 = 5.0;
     const WEAPONS_IMAGE_WIDTH: f32 = 32.0;
     const WEAPONS_IMAGE_HEIGHT: f32 = 32.0;
 
@@ -111,7 +113,7 @@ impl GUI {
         &self.map
     }
 
-    pub fn draw_crab(&self, ctx: &mut Context, player_name: &str, crab: &Crab, is_active: bool) -> GameResult {
+    pub fn draw_crab(&self, ctx: &mut Context, player_name: &str, crab: &Crab, is_active: bool, power: f32) -> GameResult {
         let player = self.players.get(player_name).unwrap();
         let crab_rect = crab.get_rect();
         let scale = Vector2::new(
@@ -141,6 +143,9 @@ impl GUI {
                     let d = weapon.direction().scale(Self::AIM_DISTANCE);
                     let aim_dest = Point2::new(rect.x + d.x, rect.y + d.y);
                     self.draw_aim(ctx, aim_dest)?;
+                    if weapon.kind() == WeaponType::Bazooka {
+                        self.draw_power(ctx, rect, power)?;
+                    }
                 }
                 Ok(())
             }
@@ -171,6 +176,20 @@ impl GUI {
             .find(|(_, w)| w.kind == weapon)
             .unwrap();
         self.draw_weapon_at_idx(ctx, idx as u8, rect, Vector2::new(0.5, 0.5))
+    }
+
+    pub fn draw_power(&self, ctx: &mut Context, rect: Rect, power: f32) -> GameResult {
+        let dest = Point2::new(rect.left(), rect.bottom() + Self::POWER_DISTANCE);
+        let bar = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            Rect::new(dest.x, dest.y, power * rect.w, Self::POWER_HEIGHT),
+        ggez::graphics::Color::new(0.0, 0.0, 1.0, 1.0))?;
+        graphics::draw(
+            ctx,
+            &bar,
+            DrawParam::default(),
+        )
     }
 
     pub fn draw_shot(&self, ctx: &mut Context, shot: &Shot) -> GameResult {

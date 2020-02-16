@@ -16,6 +16,7 @@ struct InputState {
     movement: f32,
     weapons_menu_open: bool,
     weapon_direction: f32,
+    power: f32,
 }
 
 pub struct Game {
@@ -72,7 +73,6 @@ impl Game {
         let map_image = gui.get_map();
         let data = map_image.to_rgba8(ctx)?;
         let map = Map::new(&data, map_image.width() as u16, map_image.height() as u16);
-        //        println!("map: {:?}", map);
 
         // Necessary for placing players on the ground.
         for player in players.iter_mut() {
@@ -80,7 +80,6 @@ impl Game {
                 crab.update(Vector2::new(0.0, 0.0), 0.0, &map);
             }
         }
-
         Ok(Self {
             cfg,
             gui,
@@ -179,6 +178,9 @@ impl event::EventHandler for Game {
 
         const FPS: u32 = 30;
         let seconds = 1.0 / (FPS as f32);
+        if ggez::input::keyboard::is_key_pressed(ctx, event::KeyCode::Space) {
+            self.input.power = ggez::nalgebra::clamp(self.input.power + seconds / self.cfg.shots.power.time, self.cfg.shots.power.min, self.cfg.shots.power.max);
+        }
 
         while timer::check_update_time(ctx, FPS) {
             self.players[self.active_player_idx].update_crab(
@@ -212,6 +214,8 @@ impl event::EventHandler for Game {
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         graphics::clear(ctx, [0.0, 0.0, 0.0, 0.0].into());
+        let power = self.input.power;
+
         self.gui.draw_map(
             ctx,
             graphics::Rect::new(0.0, 0.0, self.cfg.screen.width, self.cfg.screen.height),
@@ -220,7 +224,7 @@ impl event::EventHandler for Game {
 
         for player in self.players.iter() {
             for crab in player.crabs.iter() {
-                self.gui.draw_crab(ctx, &player.name, crab, self.is_crab_active(&crab.name))?;
+                self.gui.draw_crab(ctx, &player.name, crab, self.is_crab_active(&crab.name), power)?;
                 // let rect = crab.get_rect();
                 // self.gui.draw_rect(ctx, rect)?;
             }
@@ -270,7 +274,9 @@ impl event::EventHandler for Game {
             event::KeyCode::Up | event::KeyCode::Down => self.input.weapon_direction = 0.0,
             event::KeyCode::Space => {
                 if !self.shooting_in_progress {
-                    let shots = self.active_player().fire();
+                    let power = self.input.power;
+                    let shots = self.active_player().fire(power + 1.0);
+                    self.input.power = 0.0;
                     self.spawn_shots(shots);
                 }
             }

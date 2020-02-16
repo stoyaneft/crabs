@@ -1,5 +1,3 @@
-extern crate ggez;
-
 pub mod config;
 pub mod crab;
 pub mod game;

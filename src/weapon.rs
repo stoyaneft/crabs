@@ -12,19 +12,19 @@ pub enum WeaponType {
 }
 
 pub trait Fireable {
-    fn fire(&self, _: Point2<f32>, _: Vector2<f32>) -> Vec<Shot>;
+    fn fire(&self, _: Point2<f32>, _: Vector2<f32>, _: f32) -> Vec<Shot>;
 }
 
 pub struct Skip {}
 impl Fireable for Skip {
-    fn fire(&self, _: Point2<f32>, _: Vector2<f32>) -> Vec<Shot> {
+    fn fire(&self, _: Point2<f32>, _: Vector2<f32>, _: f32) -> Vec<Shot> {
         vec![]
     }
 }
 
 pub struct Pistol {}
 impl Fireable for Pistol {
-    fn fire(&self, pos: Point2<f32>, d: Vector2<f32>) -> Vec<Shot> {
+    fn fire(&self, pos: Point2<f32>, d: Vector2<f32>, _: f32) -> Vec<Shot> {
         vec![Shot::new(ShotConfig{
             speed: CONFIG.shots.pistol.speed,
             damage: CONFIG.shots.pistol.damage,
@@ -37,9 +37,9 @@ impl Fireable for Pistol {
 
 pub struct Bazooka {}
 impl Fireable for Bazooka {
-    fn fire(&self, pos: Point2<f32>, d: Vector2<f32>) -> Vec<Shot> {
+    fn fire(&self, pos: Point2<f32>, d: Vector2<f32>, power: f32) -> Vec<Shot> {
         vec![Shot::new(ShotConfig{
-            speed: CONFIG.shots.bazooka.speed,
+            speed: CONFIG.shots.bazooka.speed * power,
             damage: CONFIG.shots.bazooka.damage,
             mass: CONFIG.shots.bazooka.mass,
             width: CONFIG.shots.bazooka.width,
@@ -67,8 +67,8 @@ impl Weapon {
         self.kind
     }
 
-    pub fn fire(&self, pos: Point2<f32>) -> Vec<Shot> {
-        self.weapon.fire(pos, self.direction)
+    pub fn fire(&self, pos: Point2<f32>, power: f32) -> Vec<Shot> {
+        self.weapon.fire(pos, self.direction, power)
     }
 
     pub fn set_weapon(&mut self, weapon: Box<dyn Fireable>) {
